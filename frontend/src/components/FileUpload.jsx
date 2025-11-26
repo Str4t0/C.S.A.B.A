@@ -1,0 +1,190 @@
+/**
+ * FileUpload komponens - Drag & Drop képfeltöltés
+ * Frontend Developer: Sarah Kim
+ */
+
+import React, { useState } from 'react';
+import { imagesAPI } from '../services/api';
+import CameraCapture from './CameraCapture';
+
+const FileUpload = ({ onImageUploaded, currentImage }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(currentImage ? imagesAPI.getImageUrl(currentImage) : null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [uploadedFilename, setUploadedFilename] = useState(currentImage || null);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      await uploadFile(files[0]);
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      await uploadFile(files[0]);
+    }
+  };
+
+  const uploadFile = async (file) => {
+    console.log('📸 Kép feltöltés indítása...', {
+      name: file.name,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`
+    });
+
+    // Fájl validáció
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      console.error('❌ Érvénytelen fájl típus:', file.type);
+      alert(`Csak JPG, PNG vagy WebP formátumú képeket tölthetsz fel!\n\nJelenlegi típus: ${file.type}`);
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB (növelve mobilhoz)
+    if (file.size > maxSize) {
+      console.error('❌ Fájl túl nagy:', file.size);
+      alert(`A fájl túl nagy! Maximum 10MB méretű lehet.\n\nJelenlegi méret: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      console.log('📤 Feltöltés a backend-re...');
+      const response = await imagesAPI.upload(file);
+      console.log('✅ Feltöltés sikeres!', response);
+      
+      setUploadedFilename(response.filename);
+      const imageUrl = imagesAPI.getImageUrl(response.filename);
+      console.log('🖼️ Kép URL:', imageUrl);
+      setPreview(imageUrl);
+      onImageUploaded(response.filename);
+      
+      // Sikeres feltöltés jelzése
+      alert('✅ Kép sikeresen feltöltve!');
+    } catch (error) {
+      console.error('❌ Feltöltési hiba:', error);
+      console.error('Hiba részletei:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      let errorMessage = 'Hiba történt a kép feltöltése során!';
+      if (error.response?.status === 413) {
+        errorMessage = 'A kép túl nagy! Próbálj kisebb felbontást használni.';
+      } else if (error.response?.status === 0 || error.message.includes('Network Error')) {
+        errorMessage = 'Nem sikerült kapcsolódni a szerverhez!\n\nEllenőrizd:\n- Backend fut? (http://'+window.location.hostname+':8000)\n- Ugyanazon a hálózaton vagy?\n- Tűzfal nem blokkolja?';
+      } else if (error.response?.data?.detail) {
+        errorMessage = `Szerver hiba: ${error.response.data.detail}`;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCameraCapture = async (file) => {
+    await uploadFile(file);
+    setShowCamera(false);
+  };
+
+  const removeImage = () => {
+    setPreview(null);
+    setUploadedFilename(null);
+    onImageUploaded(null);
+  };
+
+  if (showCamera) {
+    return (
+      <CameraCapture 
+        onCapture={handleCameraCapture}
+        onClose={() => setShowCamera(false)}
+      />
+    );
+  }
+
+  return (
+    <div className="form-group">
+      <label className="form-label">Kép</label>
+      
+      {preview ? (
+        <div className="image-preview">
+          <img src={preview} alt="Preview" />
+          <button 
+            type="button"
+            className="remove-image-btn"
+            onClick={removeImage}
+            title="Kép eltávolítása"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <>
+          <div 
+            className={`file-upload-area ${isDragging ? 'drag-over' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input 
+              type="file" 
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              capture="environment"
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
+            
+            <div className="upload-icon">
+              {uploading ? '⏳' : '📸'}
+            </div>
+            
+            <p>
+              {uploading 
+                ? 'Feltöltés folyamatban...' 
+                : 'Kattints ide - Fotó vagy galéria'}
+            </p>
+            <small style={{ color: 'var(--text-secondary)' }}>
+              Mobil: kamera vagy galéria | PC: fájl vagy drag & drop
+            </small>
+            <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '5px' }}>
+              JPG, PNG vagy WebP (max 10MB)
+            </small>
+          </div>
+
+          {/* Kamera gomb csak HTTPS vagy localhost esetén */}
+          {(window.location.protocol === 'https:' || window.location.hostname === 'localhost') && (
+            <button 
+              type="button"
+              className="camera-btn"
+              onClick={() => setShowCamera(true)}
+              disabled={uploading}
+            >
+              📷 Fotó készítése böngésző kamerával
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default FileUpload;

@@ -1,0 +1,63 @@
+================================================================================
+  MASOLD BE EZEKET A PARANCSOKAT - KESZ MEGOLDAS
+================================================================================
+
+FONTOS: 2 kulonbozo CMD ablakot kell nyitnod!
+
+
+==== CMD ABLAK 1 - BACKEND ====
+
+Nyiss egy CMD-t (Win+R -> cmd -> Enter) es masold be EZT:
+
+cd D:\Programozas\Progs\home-inventory-system\home-inventory-system\backend && python -m pip install fastapi "uvicorn[standard]" sqlalchemy pydantic pillow python-multipart aiofiles python-dotenv && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+
+==== CMD ABLAK 2 - FRONTEND ====
+
+Nyiss egy MASIK CMD-t es masold be EZT:
+
+cd D:\Programozas\Progs\home-inventory-system\home-inventory-system\frontend && npm install && npm run dev
+
+
+==== BONGESZO ====
+
+Nyisd meg:
+
+http://localhost:3000
+
+
+================================================================================
+  KESZ! EZ MUKODNI FOG! 🎉
+================================================================================
+
+
+TIPPEK:
+
+1. Varj amig az elso parancs (backend) vegzett!
+   Latod: "INFO:     Application startup complete."
+
+2. Akkor inditsd a masodik parancsot (frontend)!
+   Varj ~1 percet
+
+3. Ha minden rendben, latod:
+   "VITE v5.0.8  ready"
+   "Local: http://localhost:3000/"
+
+4. Nyisd meg a bongeszoben: http://localhost:3000
+
+5. Hasznald az alkalmazast! 🎊
+
+
+HIBA HA:
+
+- "python not recognized" -> Telepitsd Python-t
+- "npm not recognized" -> Telepitsd Node.js-t  
+- "Port already in use" -> Allitsd le a futo processt vagy hasznalj mas portot
+
+
+LEALLITAS:
+
+Mindket CMD ablakban: CTRL+C majd Y
+
+
+================================================================================
