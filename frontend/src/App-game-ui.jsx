@@ -27,17 +27,29 @@ function AppGameUI() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [formDirty, setFormDirty] = useState(false);
   const [selectedView, setSelectedView] = useState('Items');
 
   // State management - Users
   const [users, setUsers] = useState([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    display_name: '',
+    email: ''
+  });
 
   // State management - Locations
   const [locations, setLocations] = useState([]);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
+  const [newLocation, setNewLocation] = useState({
+    name: '',
+    description: '',
+    parent_id: null,
+    icon: '📍'
+  });
 
   // Sidebar menü
   const sidebarMenu = [
@@ -125,13 +137,25 @@ function AppGameUI() {
   // Új tárgy hozzáadása
   const handleAddItem = () => {
     setEditingItem(null);
+    setFormDirty(false);
     setShowModal(true);
   };
 
   // Tárgy szerkesztése
   const handleEditItem = (item) => {
     setEditingItem(item);
+    setFormDirty(false);
     setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    if (formDirty) {
+      const confirmClose = confirm('A módosítások mentése nélkül bezárod az űrlapot?');
+      if (!confirmClose) return;
+    }
+    setShowModal(false);
+    setEditingItem(null);
+    setFormDirty(false);
   };
 
   // Tárgy törlése
@@ -154,15 +178,21 @@ function AppGameUI() {
   const handleFormSubmit = async (formData) => {
     try {
       if (editingItem) {
-        await itemsAPI.update(editingItem.id, formData);
+        const updated = await itemsAPI.update(editingItem.id, formData);
+        setEditingItem(updated);
         alert('✅ Tárgy sikeresen frissítve!');
       } else {
-        await itemsAPI.create(formData);
-        alert('✅ Új tárgy sikeresen hozzáadva!');
+        const created = await itemsAPI.create(formData);
+        setEditingItem(created);
+        alert('✅ Új tárgy elmentve! Most hozzáadhatsz képet vagy dokumentumot.');
       }
-      setShowModal(false);
-      setEditingItem(null);
+      setFormDirty(false);
       await loadData();
+      // Csak szerkesztésnél zárjuk automatikusan, új létrehozásnál maradjon nyitva dokumentumhoz
+      if (editingItem) {
+        setShowModal(false);
+        setEditingItem(null);
+      }
     } catch (error) {
       console.error('Mentési hiba:', error);
       alert('Hiba történt a mentés során!');
@@ -186,9 +216,38 @@ function AppGameUI() {
     setShowUserModal(true);
   };
 
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    try {
+      await usersAPI.create(newUser);
+      await loadUsers();
+      setNewUser({ username: '', display_name: '', email: '' });
+      alert('✅ Felhasználó hozzáadva!');
+    } catch (error) {
+      console.error('User létrehozási hiba:', error);
+      alert('Hiba történt a felhasználó létrehozásakor.');
+    }
+  };
+
   const handleLocationManagement = () => {
     loadLocations();
     setShowLocationModal(true);
+  };
+
+  const handleCreateLocation = async (e) => {
+    e.preventDefault();
+    try {
+      await locationsAPI.create({
+        ...newLocation,
+        parent_id: newLocation.parent_id || null
+      });
+      await loadLocations();
+      setNewLocation({ name: '', description: '', parent_id: null, icon: '📍' });
+      alert('✅ Helyszín hozzáadva!');
+    } catch (error) {
+      console.error('Location létrehozási hiba:', error);
+      alert('Hiba történt a helyszín létrehozásakor.');
+    }
   };
 
   // Status meghatározás
@@ -507,11 +566,11 @@ function AppGameUI() {
 
       {/* Item Modal */}
       {showModal && (
-        <div className="game-modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="game-modal-overlay" onClick={handleCloseModal}>
           <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px' }}>
             <div className="game-modal-header">
               <span>{editingItem ? '✏️ Tárgy szerkesztése' : '➕ Új tárgy hozzáadása'}</span>
-              <div className="game-modal-close" onClick={() => setShowModal(false)}>
+              <div className="game-modal-close" onClick={handleCloseModal}>
                 ✕
               </div>
             </div>
@@ -520,7 +579,8 @@ function AppGameUI() {
                 item={editingItem}
                 categories={categories}
                 onSubmit={handleFormSubmit}
-                onCancel={() => setShowModal(false)}
+                onCancel={handleCloseModal}
+                onDirtyChange={setFormDirty}
               />
             </div>
           </div>
@@ -582,12 +642,36 @@ function AppGameUI() {
               )}
 
               <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <button 
-                  className="game-btn game-btn-primary"
-                  onClick={() => alert('🔨 User létrehozás hamarosan!\n\nFunkció fejlesztés alatt...')}
-                >
-                  ➕ Új felhasználó
-                </button>
+                <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <input
+                      type="text"
+                      className="game-search-input"
+                      placeholder="Felhasználónév"
+                      value={newUser.username}
+                      onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                      required
+                    />
+                    <input
+                      type="text"
+                      className="game-search-input"
+                      placeholder="Megjelenített név"
+                      value={newUser.display_name}
+                      onChange={(e) => setNewUser({ ...newUser, display_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <input
+                    type="email"
+                    className="game-search-input"
+                    placeholder="Email (opcionális)"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  />
+                  <button className="game-btn game-btn-primary" type="submit">
+                    ➕ Új felhasználó
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -640,12 +724,39 @@ function AppGameUI() {
               )}
 
               <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <button 
-                  className="game-btn game-btn-primary"
-                  onClick={() => alert('🔨 Helyszín létrehozás hamarosan!\n\nFunkció fejlesztés alatt...')}
-                >
-                  ➕ Új helyszín
-                </button>
+                <form onSubmit={handleCreateLocation} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <input
+                    type="text"
+                    className="game-search-input"
+                    placeholder="Helyszín neve"
+                    value={newLocation.name}
+                    onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
+                    required
+                  />
+                  <textarea
+                    className="game-search-input"
+                    placeholder="Leírás (opcionális)"
+                    value={newLocation.description}
+                    onChange={(e) => setNewLocation({ ...newLocation, description: e.target.value })}
+                    rows="2"
+                    style={{ resize: 'vertical' }}
+                  />
+                  <select
+                    className="game-search-input"
+                    value={newLocation.parent_id || ''}
+                    onChange={(e) => setNewLocation({ ...newLocation, parent_id: e.target.value ? parseInt(e.target.value) : null })}
+                  >
+                    <option value="">Fő szint</option>
+                    {locations.map(loc => (
+                      <option key={loc.id} value={loc.id}>
+                        {loc.full_path || loc.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button className="game-btn game-btn-primary" type="submit">
+                    ➕ Új helyszín
+                  </button>
+                </form>
               </div>
             </div>
           </div>
