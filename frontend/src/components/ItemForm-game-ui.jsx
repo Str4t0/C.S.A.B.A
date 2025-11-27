@@ -99,22 +99,38 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validáció
     if (!formData.name || !formData.category) {
       alert('Név és kategória megadása kötelező!');
       return;
     }
 
-    // Numerikus mezők konvertálása
+    // Numerikus mezők konvertálása és üres stringek kiszűrése
+    const normalizeNumber = (value, allowZero = true) => {
+      if (value === null || value === undefined) return null;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '') return null;
+        // vessző helyett pont támogatása
+        value = trimmed.replace(',', '.');
+      }
+      const parsed = allowZero ? Number(value) : parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
     const submitData = {
-      ...formData,
-      purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
+      name: formData.name.trim(),
+      category: formData.category,
+      description: formData.description?.trim() || null,
+      purchase_price: normalizeNumber(formData.purchase_price, false),
       purchase_date: formData.purchase_date || null,
-      quantity: parseInt(formData.quantity) || 1,
-      min_quantity: formData.min_quantity ? parseInt(formData.min_quantity) : null,
-      user_id: formData.user_id ? parseInt(formData.user_id) : null,
-      location_id: formData.location_id ? parseInt(formData.location_id) : null
+      quantity: normalizeNumber(formData.quantity) ?? 1,
+      min_quantity: normalizeNumber(formData.min_quantity),
+      user_id: normalizeNumber(formData.user_id),
+      location_id: normalizeNumber(formData.location_id),
+      notes: formData.notes?.trim() || null,
+      image_filename: formData.image_filename || null
     };
 
     onDirtyChange?.(false);

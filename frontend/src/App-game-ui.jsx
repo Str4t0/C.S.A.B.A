@@ -195,7 +195,11 @@ function AppGameUI() {
       }
     } catch (error) {
       console.error('Mentési hiba:', error);
-      alert('Hiba történt a mentés során!');
+      const backendDetail = error?.response?.data?.detail;
+      const message = backendDetail
+        ? `Hiba történt a mentés során: ${Array.isArray(backendDetail) ? backendDetail.map(d => d.msg || d).join('\n') : backendDetail}`
+        : 'Hiba történt a mentés során!';
+      alert(message);
     }
   };
 

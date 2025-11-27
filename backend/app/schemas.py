@@ -3,7 +3,7 @@ Pydantic sémák API request/response validációhoz
 Backend Developer: Maria Rodriguez
 """
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional, List
 from datetime import date, datetime
 
@@ -26,6 +26,55 @@ class ItemBase(BaseModel):
 
     # Engedjük a plusz mezőket (pl. location), hogy ne dobjon hibát a backend
     model_config = ConfigDict(extra="ignore")
+
+    # ---------- Normalizáló validátorok blank stringekhez és típusokhoz ----------
+    @field_validator(
+        "description",
+        "notes",
+        "image_filename",
+        mode="before",
+    )
+    def empty_string_to_none(cls, v):
+        """Üres stringeket konvertáljunk None-ra az opcionális mezőknél."""
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
+    @field_validator("purchase_price", "quantity", "min_quantity", mode="before")
+    def numbers_from_strings(cls, v, info):
+        """
+        Űrlapokból érkező string számok (vagy üres stringek) normalizálása.
+
+        - Üres string -> None (opcionális mezőknél)
+        - Vesszővel megadott ár -> ponttal parse-oljuk
+        """
+        if v is None:
+            return v
+        if isinstance(v, str):
+            if v.strip() == "":
+                return None
+            v = v.replace(",", ".")
+        try:
+            if info.field_name in {"purchase_price"}:
+                return float(v)
+            # quantity / min_quantity
+            return int(v)
+        except (TypeError, ValueError):
+            return v
+
+    @field_validator("user_id", "location_id", mode="before")
+    def ids_from_strings(cls, v):
+        """ID mezők esetén az üres string legyen None, a szám string konvertálódjon int-re."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            if v.strip() == "":
+                return None
+            try:
+                return int(v)
+            except ValueError:
+                return v
+        return v
 
 
 class ItemCreate(ItemBase):
