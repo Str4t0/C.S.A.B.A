@@ -49,3 +49,4 @@ echo.
 echo Leallitas: Zard be a 2 CMD ablakot vagy nyomj CTRL+C mindkettobe
 echo.
 pause
+
