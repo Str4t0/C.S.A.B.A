@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import { itemsAPI, categoriesAPI, statsAPI } from './services/api';
 import ItemCard from './components/ItemCard';
 import ItemForm from './components/ItemForm';
@@ -11,6 +12,7 @@ import './styles/main.css';
 import Alerts from './components/Alerts';
 import Statistics from './components/Statistics';
 import QRScanner from './components/QRScanner';
+import Settings from './components/Settings';
 
 function App() {
   const [items, setItems] = useState([]);
@@ -128,7 +130,7 @@ function App() {
   // Szűrt items
   const displayedItems = items;
 
-  return (
+  const homeContent = (
     <div className="app-container">
       {/* Header */}
       <header className="header">
@@ -243,6 +245,26 @@ function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  return (
+    <div className="app-shell">
+      <nav className="main-nav">
+        <Link to="/">🏠 Főoldal</Link>
+        <Link to="/alerts">🔔 Értesítések</Link>
+        <Link to="/statistics">📊 Statisztikák</Link>
+        <Link to="/qr-scanner">📷 QR Beolvasó</Link>
+        <Link to="/settings">⚙️ Beállítások</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={homeContent} />
+        <Route path="/alerts" element={<Alerts />} />
+        <Route path="/statistics" element={<Statistics />} />
+        <Route path="/qr-scanner" element={<QRScanner />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
     </div>
   );
 }

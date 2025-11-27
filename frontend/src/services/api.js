@@ -29,12 +29,14 @@ const API_BASE_URL = `${BACKEND_URL}/api`;
 
 console.log('Backend URL:', BACKEND_URL); // Debug célból
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+export default api;
 
 // ============= ITEMS API =============
 
