@@ -20,7 +20,7 @@ import UserSelector from './UserSelector';
 import LocationSelector from './LocationSelector';
 import { qrAPI } from '../services/api';
 
-const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
+const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange }) => {
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -37,6 +37,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
 
   const [qrCode, setQrCode] = useState(null);
   const [generatingQR, setGeneratingQR] = useState(false);
+  const [documentRefreshKey, setDocumentRefreshKey] = useState(0);
 
   useEffect(() => {
     if (item) {
@@ -53,13 +54,31 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
         quantity: item.quantity || 1,
         min_quantity: item.min_quantity || null
       });
-      
+
       // QR kód betöltése ha van
       if (item.qr_code) {
         setQrCode(item.qr_code);
       }
+    } else {
+      setFormData({
+        name: '',
+        category: '',
+        description: '',
+        purchase_price: '',
+        purchase_date: '',
+        notes: '',
+        image_filename: null,
+        user_id: null,
+        location_id: null,
+        quantity: 1,
+        min_quantity: null
+      });
+      setQrCode(null);
     }
-  }, [item]);
+
+    // reset dirty flag when switching items or opening a fresh form
+    onDirtyChange?.(false);
+  }, [item, onDirtyChange]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,6 +86,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
       ...prev,
       [name]: value
     }));
+    onDirtyChange?.(true);
   };
 
   const handleImageUploaded = (filename) => {
@@ -74,27 +94,46 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
       ...prev,
       image_filename: filename
     }));
+    onDirtyChange?.(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validáció
     if (!formData.name || !formData.category) {
       alert('Név és kategória megadása kötelező!');
       return;
     }
 
-    // Numerikus mezők konvertálása
-    const submitData = {
-      ...formData,
-      purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
-      quantity: parseInt(formData.quantity) || 1,
-      min_quantity: formData.min_quantity ? parseInt(formData.min_quantity) : null,
-      user_id: formData.user_id || null,
-      location_id: formData.location_id || null
+    // Numerikus mezők konvertálása és üres stringek kiszűrése
+    const normalizeNumber = (value, allowZero = true) => {
+      if (value === null || value === undefined) return null;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '') return null;
+        // vessző helyett pont támogatása
+        value = trimmed.replace(',', '.');
+      }
+      const parsed = allowZero ? Number(value) : parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : null;
     };
 
+    const submitData = {
+      name: formData.name.trim(),
+      category: formData.category,
+      description: formData.description?.trim() || null,
+      purchase_price: normalizeNumber(formData.purchase_price, false),
+      purchase_date: formData.purchase_date || null,
+      quantity: normalizeNumber(formData.quantity) ?? 1,
+      min_quantity: normalizeNumber(formData.min_quantity),
+      user_id: normalizeNumber(formData.user_id),
+      location_id: normalizeNumber(formData.location_id),
+      notes: formData.notes?.trim() || null,
+      image_filename: formData.image_filename || null
+    };
+
+    onDirtyChange?.(false);
     onSubmit(submitData);
   };
 
@@ -309,7 +348,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
           }}>👤 Tulajdonos</h3>
           <UserSelector
             selectedUserId={formData.user_id}
-            onUserChange={(userId) => setFormData(prev => ({ ...prev, user_id: userId }))}
+            onUserChange={(userId) => {
+              setFormData(prev => ({ ...prev, user_id: userId }));
+              onDirtyChange?.(true);
+            }}
           />
         </div>
 
@@ -330,7 +372,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
           }}>📍 Helyszín</h3>
           <LocationSelector
             selectedLocationId={formData.location_id}
-            onLocationChange={(locationId) => setFormData(prev => ({ ...prev, location_id: locationId }))}
+            onLocationChange={(locationId) => {
+              setFormData(prev => ({ ...prev, location_id: locationId }));
+              onDirtyChange?.(true);
+            }}
           />
         </div>
 
@@ -546,41 +591,67 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
           </div>
         )}
 
-        {/* Dokumentumok (csak meglévő tétel esetén) */}
-        {item && item.id && (
-          <>
-            <div style={{
-              background: 'var(--game-cream-light)',
-              border: 'var(--border-medium) solid var(--game-brown)',
-              borderRadius: 'var(--radius-medium)',
-              padding: '20px'
-            }}>
-              <h3 style={{
-                fontFamily: 'var(--font-game)',
-                fontSize: '20px',
-                color: 'var(--game-brown)',
-                marginBottom: '15px',
-                paddingBottom: '10px',
-                borderBottom: 'var(--border-thin) solid var(--game-brown)'
-              }}>📎 Dokumentumok feltöltése</h3>
-              <DocumentUploadGameUI 
+        {/* Dokumentumok */}
+        <div style={{
+          background: 'var(--game-cream-light)',
+          border: 'var(--border-medium) solid var(--game-brown)',
+          borderRadius: 'var(--radius-medium)',
+          padding: '20px'
+        }}>
+          <h3 style={{
+            fontFamily: 'var(--font-game)',
+            fontSize: '20px',
+            color: 'var(--game-brown)',
+            marginBottom: '15px',
+            paddingBottom: '10px',
+            borderBottom: 'var(--border-thin) solid var(--game-brown)'
+          }}>📎 Dokumentumok</h3>
+
+          {item && item.id ? (
+            <>
+              <div style={{ marginBottom: '20px' }}>
+                <DocumentUploadGameUI
+                  itemId={item.id}
+                  onDocumentUploaded={() => {
+                    // Refresh document list so the new file can be downloaded immediately
+                    setDocumentRefreshKey((key) => key + 1);
+                  }}
+                />
+              </div>
+
+              <DocumentListGameUI
                 itemId={item.id}
-                onDocumentUploaded={() => {
-                  // Refresh document list
-                }}
+                refreshTrigger={documentRefreshKey}
               />
-            </div>
-            
+            </>
+          ) : (
             <div style={{
-              background: 'var(--game-cream-light)',
-              border: 'var(--border-medium) solid var(--game-brown)',
-              borderRadius: 'var(--radius-medium)',
-              padding: '20px'
+              background: 'var(--game-cream)',
+              border: 'var(--border-thin) solid var(--game-brown)',
+              borderRadius: 'var(--radius-small)',
+              padding: '16px',
+              fontFamily: 'var(--font-text)',
+              color: 'var(--game-brown)'
             }}>
-              <DocumentListGameUI itemId={item.id} />
+              <div style={{
+                fontWeight: 700,
+                marginBottom: '8px'
+              }}>
+                Mentés után tudsz dokumentumokat feltölteni és letölteni.
+              </div>
+              <ul style={{
+                margin: 0,
+                paddingLeft: '18px',
+                color: 'var(--game-brown-medium)',
+                lineHeight: 1.6
+              }}>
+                <li>Támogatott formátumok: PDF, Word, Excel, TXT, OpenDocument</li>
+                <li>Maximális fájlméret: 20MB</li>
+                <li>Garanciajegy, számla vagy kézikönyv is feltölthető</li>
+              </ul>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Form akciók */}
