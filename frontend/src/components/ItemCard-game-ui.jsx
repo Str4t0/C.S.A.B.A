@@ -156,7 +156,7 @@ function ItemCardGameUI({ item, status, onDelete, onEdit }) {
         {onEdit && (
           <button
             className="game-btn game-btn-small"
-            onClick={() => onEdit(item.id)}
+            onClick={() => onEdit(item)}
           >
             ✏️ Szerkeszt
           </button>
