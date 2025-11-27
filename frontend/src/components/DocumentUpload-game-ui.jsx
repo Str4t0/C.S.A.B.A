@@ -5,6 +5,7 @@
  */
 
 import React, { useState } from 'react';
+import { documentsAPI } from '../services/api';
 
 const DocumentUploadGameUI = ({ itemId, onDocumentUploaded }) => {
   const [uploading, setUploading] = useState(false);
@@ -41,28 +42,7 @@ const DocumentUploadGameUI = ({ itemId, onDocumentUploaded }) => {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      if (documentType) formData.append('document_type', documentType);
-      if (description) formData.append('description', description);
-
-      const backendURL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8000'
-        : `http://${window.location.hostname}:8000`;
-
-      console.log('📤 Feltöltés...', backendURL);
-
-      const response = await fetch(`${backendURL}/api/items/${itemId}/documents`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Feltöltési hiba');
-      }
-
-      const data = await response.json();
+      const data = await documentsAPI.upload(itemId, file, documentType, description);
       console.log('✅ Dokumentum feltöltve!', data);
 
       alert(`✅ Dokumentum sikeresen feltöltve!\n\n${file.name}`);
@@ -78,7 +58,8 @@ const DocumentUploadGameUI = ({ itemId, onDocumentUploaded }) => {
 
     } catch (error) {
       console.error('❌ Feltöltési hiba:', error);
-      alert(`Hiba történt a dokumentum feltöltésekor!\n\n${error.message}`);
+      const serverMessage = error.response?.data?.detail || error.message;
+      alert(`Hiba történt a dokumentum feltöltésekor!\n\n${serverMessage}`);
     } finally {
       setUploading(false);
     }

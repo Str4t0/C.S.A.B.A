@@ -50,7 +50,13 @@ def create_item(db: Session, item: schemas.ItemCreate) -> models.Item:
     """
     Új item létrehozása
     """
-    db_item = models.Item(**item.model_dump())
+    payload = item.model_dump()
+
+    # Végső védelem: ha quantity hiányzik vagy hibásan érkezett, állítsuk 1-re
+    if payload.get("quantity") is None:
+        payload["quantity"] = 1
+
+    db_item = models.Item(**payload)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
