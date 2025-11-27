@@ -3,7 +3,7 @@ Pydantic sémák API request/response validációhoz
 Backend Developer: Maria Rodriguez
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import date, datetime
 
@@ -17,9 +17,15 @@ class ItemBase(BaseModel):
     description: Optional[str] = Field(None, description="Leírás")
     purchase_price: Optional[float] = Field(None, ge=0, description="Vásárlási ár")
     purchase_date: Optional[date] = Field(None, description="Vásárlás dátuma")
-    location: Optional[str] = Field(None, max_length=200, description="Helyszín")
+    quantity: int = Field(default=1, ge=0, description="Mennyiség")
+    min_quantity: Optional[int] = Field(None, ge=0, description="Minimális készlet")
+    user_id: Optional[int] = Field(None, description="Tulajdonos user ID")
+    location_id: Optional[int] = Field(None, description="Helyszín ID")
     notes: Optional[str] = Field(None, description="Jegyzetek")
     image_filename: Optional[str] = Field(None, max_length=300, description="Kép fájlnév")
+
+    # Engedjük a plusz mezőket (pl. location), hogy ne dobjon hibát a backend
+    model_config = ConfigDict(extra="ignore")
 
 
 class ItemCreate(ItemBase):
@@ -38,9 +44,15 @@ class ItemUpdate(BaseModel):
     description: Optional[str] = None
     purchase_price: Optional[float] = Field(None, ge=0)
     purchase_date: Optional[date] = None
-    location: Optional[str] = Field(None, max_length=200)
+    quantity: Optional[int] = Field(None, ge=0)
+    min_quantity: Optional[int] = Field(None, ge=0)
+    user_id: Optional[int] = None
+    location_id: Optional[int] = None
     notes: Optional[str] = None
     image_filename: Optional[str] = Field(None, max_length=300)
+
+    # Külső kliensek extra mezőit ignoráljuk (pl. location objektum)
+    model_config = ConfigDict(extra="ignore")
 
 
 class ItemResponse(ItemBase):
