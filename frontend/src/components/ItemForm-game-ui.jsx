@@ -37,6 +37,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
 
   const [qrCode, setQrCode] = useState(null);
   const [generatingQR, setGeneratingQR] = useState(false);
+  const [documentRefreshKey, setDocumentRefreshKey] = useState(0);
 
   useEffect(() => {
     if (item) {
@@ -563,21 +564,25 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
                 paddingBottom: '10px',
                 borderBottom: 'var(--border-thin) solid var(--game-brown)'
               }}>📎 Dokumentumok feltöltése</h3>
-              <DocumentUploadGameUI 
+              <DocumentUploadGameUI
                 itemId={item.id}
                 onDocumentUploaded={() => {
-                  // Refresh document list
+                  // Refresh document list so the new file can be downloaded immediately
+                  setDocumentRefreshKey((key) => key + 1);
                 }}
               />
             </div>
-            
+
             <div style={{
               background: 'var(--game-cream-light)',
               border: 'var(--border-medium) solid var(--game-brown)',
               borderRadius: 'var(--radius-medium)',
               padding: '20px'
             }}>
-              <DocumentListGameUI itemId={item.id} />
+              <DocumentListGameUI
+                itemId={item.id}
+                refreshTrigger={documentRefreshKey}
+              />
             </div>
           </>
         )}
