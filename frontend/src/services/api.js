@@ -332,6 +332,7 @@ export default {
   
   // Stats
   getStats: statsAPI.get,
+  getGlobalStats: statsAPI.get, 
   
   // Images
   uploadImage: imagesAPI.upload,
