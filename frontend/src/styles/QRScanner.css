@@ -1,0 +1,380 @@
+/* QRScanner.css - QR kód beolvasó stílus */
+
+.qr-scanner-container {
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Header */
+.scanner-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.scanner-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Scanner Content */
+.scanner-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Start Screen */
+.scanner-start {
+  text-align: center;
+}
+
+.start-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.scanner-start h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.scanner-start p {
+  color: #7f8c8d;
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+}
+
+.start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Active Scanner */
+.scanner-active {
+  width: 100%;
+  position: relative;
+}
+
+#qr-reader {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#qr-reader video {
+  border-radius: 12px;
+}
+
+.scanner-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.scanner-frame {
+  width: 250px;
+  height: 250px;
+  border: 3px solid #667eea;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    border-color: #667eea;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    border-color: #764ba2;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.scanner-hint {
+  margin-top: 1rem;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.stop-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s;
+}
+
+.stop-btn:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+/* Error Screen */
+.scanner-error {
+  text-align: center;
+}
+
+.error-icon {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+.scanner-error h3 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.scanner-error p {
+  color: #7f8c8d;
+  margin: 0 0 2rem 0;
+}
+
+.retry-btn {
+  padding: 0.75rem 2rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.retry-btn:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+/* Success Screen */
+.scanner-success {
+  text-align: center;
+  width: 100%;
+}
+
+.success-icon {
+  color: #2ecc71;
+  margin-bottom: 1rem;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.scanner-success h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Item Preview */
+.item-preview {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.item-image {
+  width: 100%;
+  max-width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.item-info {
+  /* Info container */
+}
+
+.item-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.item-category {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.item-qr {
+  font-family: 'Courier New', monospace;
+  background: #ecf0f1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  display: inline-block;
+}
+
+.item-location, .item-quantity {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.view-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.view-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.scan-again-btn {
+  padding: 1rem 2rem;
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.scan-again-btn:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+/* Info Section */
+.scanner-info {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.scanner-info h3 {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+}
+
+.scanner-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scanner-info li {
+  padding: 0.5rem 0;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.scanner-info li::before {
+  content: '✓ ';
+  color: #2ecc71;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .qr-scanner-container {
+    padding: 1rem;
+  }
+
+  .scanner-content {
+    padding: 1.5rem;
+  }
+
+  .start-icon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .scanner-frame {
+    width: 200px;
+    height: 200px;
+  }
+}

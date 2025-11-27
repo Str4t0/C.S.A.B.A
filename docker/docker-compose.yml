@@ -1,0 +1,44 @@
+# Docker Compose konfiguráció
+# DevOps Engineer: Tom Wilson
+
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build: ../backend
+    container_name: home-inventory-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend/app:/app/app
+      - backend-uploads:/app/uploads
+      - backend-db:/app
+    environment:
+      - DATABASE_URL=sqlite:///./home_inventory.db
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Frontend service
+  frontend:
+    build: ../frontend
+    container_name: home-inventory-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend-uploads:
+    driver: local
+  backend-db:
+    driver: local

@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Database - FONTOS!
+*.db
+*.sqlite
+*.sqlite3
+home_inventory.db
+
+# Uploads - FONTOS!
+uploads/
+qr_codes/
+documents/
+backend/uploads/
+backend/qr_codes/
+backend/documents/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
