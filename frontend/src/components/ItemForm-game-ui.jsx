@@ -20,7 +20,7 @@ import UserSelector from './UserSelector';
 import LocationSelector from './LocationSelector';
 import { qrAPI } from '../services/api';
 
-const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
+const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange }) => {
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -54,13 +54,31 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
         quantity: item.quantity || 1,
         min_quantity: item.min_quantity || null
       });
-      
+
       // QR kód betöltése ha van
       if (item.qr_code) {
         setQrCode(item.qr_code);
       }
+    } else {
+      setFormData({
+        name: '',
+        category: '',
+        description: '',
+        purchase_price: '',
+        purchase_date: '',
+        notes: '',
+        image_filename: null,
+        user_id: null,
+        location_id: null,
+        quantity: 1,
+        min_quantity: null
+      });
+      setQrCode(null);
     }
-  }, [item]);
+
+    // reset dirty flag when switching items or opening a fresh form
+    onDirtyChange?.(false);
+  }, [item, onDirtyChange]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,6 +86,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
       ...prev,
       [name]: value
     }));
+    onDirtyChange?.(true);
   };
 
   const handleImageUploaded = (filename) => {
@@ -75,6 +94,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
       ...prev,
       image_filename: filename
     }));
+    onDirtyChange?.(true);
   };
 
   const handleSubmit = (e) => {
@@ -90,12 +110,14 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
     const submitData = {
       ...formData,
       purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
+      purchase_date: formData.purchase_date || null,
       quantity: parseInt(formData.quantity) || 1,
       min_quantity: formData.min_quantity ? parseInt(formData.min_quantity) : null,
-      user_id: formData.user_id || null,
-      location_id: formData.location_id || null
+      user_id: formData.user_id ? parseInt(formData.user_id) : null,
+      location_id: formData.location_id ? parseInt(formData.location_id) : null
     };
 
+    onDirtyChange?.(false);
     onSubmit(submitData);
   };
 
@@ -310,7 +332,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
           }}>👤 Tulajdonos</h3>
           <UserSelector
             selectedUserId={formData.user_id}
-            onUserChange={(userId) => setFormData(prev => ({ ...prev, user_id: userId }))}
+            onUserChange={(userId) => {
+              setFormData(prev => ({ ...prev, user_id: userId }));
+              onDirtyChange?.(true);
+            }}
           />
         </div>
 
@@ -331,7 +356,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
           }}>📍 Helyszín</h3>
           <LocationSelector
             selectedLocationId={formData.location_id}
-            onLocationChange={(locationId) => setFormData(prev => ({ ...prev, location_id: locationId }))}
+            onLocationChange={(locationId) => {
+              setFormData(prev => ({ ...prev, location_id: locationId }));
+              onDirtyChange?.(true);
+            }}
           />
         </div>
 

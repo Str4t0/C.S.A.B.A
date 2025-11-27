@@ -5,14 +5,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { documentsAPI } from '../services/api';
 
 const DocumentListGameUI = ({ itemId, refreshTrigger }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const backendURL = window.location.hostname === 'localhost'
-    ? 'http://localhost:8000'
-    : `http://${window.location.hostname}:8000`;
 
   useEffect(() => {
     loadDocuments();
@@ -21,13 +18,11 @@ const DocumentListGameUI = ({ itemId, refreshTrigger }) => {
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${backendURL}/api/items/${itemId}/documents`);
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data);
-      }
+      const data = await documentsAPI.getByItem(itemId);
+      setDocuments(data || []);
     } catch (error) {
       console.error('Dokumentumok betöltési hiba:', error);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -39,16 +34,9 @@ const DocumentListGameUI = ({ itemId, refreshTrigger }) => {
     }
 
     try {
-      const response = await fetch(`${backendURL}/api/documents/${documentId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        alert('✅ Dokumentum törölve!');
-        loadDocuments();
-      } else {
-        throw new Error('Törlési hiba');
-      }
+      await documentsAPI.delete(documentId);
+      alert('✅ Dokumentum törölve!');
+      loadDocuments();
     } catch (error) {
       console.error('Törlési hiba:', error);
       alert('❌ Hiba történt a törlés során!');
@@ -56,7 +44,7 @@ const DocumentListGameUI = ({ itemId, refreshTrigger }) => {
   };
 
   const handleDownload = (document) => {
-    const downloadUrl = `${backendURL}/api/documents/${document.id}/download`;
+    const downloadUrl = documentsAPI.getDownloadUrl(document.id);
     window.open(downloadUrl, '_blank');
   };
 

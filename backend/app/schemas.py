@@ -17,7 +17,10 @@ class ItemBase(BaseModel):
     description: Optional[str] = Field(None, description="Leírás")
     purchase_price: Optional[float] = Field(None, ge=0, description="Vásárlási ár")
     purchase_date: Optional[date] = Field(None, description="Vásárlás dátuma")
-    location: Optional[str] = Field(None, max_length=200, description="Helyszín")
+    quantity: int = Field(default=1, ge=0, description="Mennyiség")
+    min_quantity: Optional[int] = Field(None, ge=0, description="Minimális készlet")
+    user_id: Optional[int] = Field(None, description="Tulajdonos user ID")
+    location_id: Optional[int] = Field(None, description="Helyszín ID")
     notes: Optional[str] = Field(None, description="Jegyzetek")
     image_filename: Optional[str] = Field(None, max_length=300, description="Kép fájlnév")
 
@@ -38,7 +41,10 @@ class ItemUpdate(BaseModel):
     description: Optional[str] = None
     purchase_price: Optional[float] = Field(None, ge=0)
     purchase_date: Optional[date] = None
-    location: Optional[str] = Field(None, max_length=200)
+    quantity: Optional[int] = Field(None, ge=0)
+    min_quantity: Optional[int] = Field(None, ge=0)
+    user_id: Optional[int] = None
+    location_id: Optional[int] = None
     notes: Optional[str] = None
     image_filename: Optional[str] = Field(None, max_length=300)
 
