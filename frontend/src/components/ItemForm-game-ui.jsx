@@ -547,45 +547,67 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel }) => {
           </div>
         )}
 
-        {/* Dokumentumok (csak meglévő tétel esetén) */}
-        {item && item.id && (
-          <>
-            <div style={{
-              background: 'var(--game-cream-light)',
-              border: 'var(--border-medium) solid var(--game-brown)',
-              borderRadius: 'var(--radius-medium)',
-              padding: '20px'
-            }}>
-              <h3 style={{
-                fontFamily: 'var(--font-game)',
-                fontSize: '20px',
-                color: 'var(--game-brown)',
-                marginBottom: '15px',
-                paddingBottom: '10px',
-                borderBottom: 'var(--border-thin) solid var(--game-brown)'
-              }}>📎 Dokumentumok feltöltése</h3>
-              <DocumentUploadGameUI
-                itemId={item.id}
-                onDocumentUploaded={() => {
-                  // Refresh document list so the new file can be downloaded immediately
-                  setDocumentRefreshKey((key) => key + 1);
-                }}
-              />
-            </div>
+        {/* Dokumentumok */}
+        <div style={{
+          background: 'var(--game-cream-light)',
+          border: 'var(--border-medium) solid var(--game-brown)',
+          borderRadius: 'var(--radius-medium)',
+          padding: '20px'
+        }}>
+          <h3 style={{
+            fontFamily: 'var(--font-game)',
+            fontSize: '20px',
+            color: 'var(--game-brown)',
+            marginBottom: '15px',
+            paddingBottom: '10px',
+            borderBottom: 'var(--border-thin) solid var(--game-brown)'
+          }}>📎 Dokumentumok</h3>
 
-            <div style={{
-              background: 'var(--game-cream-light)',
-              border: 'var(--border-medium) solid var(--game-brown)',
-              borderRadius: 'var(--radius-medium)',
-              padding: '20px'
-            }}>
+          {item && item.id ? (
+            <>
+              <div style={{ marginBottom: '20px' }}>
+                <DocumentUploadGameUI
+                  itemId={item.id}
+                  onDocumentUploaded={() => {
+                    // Refresh document list so the new file can be downloaded immediately
+                    setDocumentRefreshKey((key) => key + 1);
+                  }}
+                />
+              </div>
+
               <DocumentListGameUI
                 itemId={item.id}
                 refreshTrigger={documentRefreshKey}
               />
+            </>
+          ) : (
+            <div style={{
+              background: 'var(--game-cream)',
+              border: 'var(--border-thin) solid var(--game-brown)',
+              borderRadius: 'var(--radius-small)',
+              padding: '16px',
+              fontFamily: 'var(--font-text)',
+              color: 'var(--game-brown)'
+            }}>
+              <div style={{
+                fontWeight: 700,
+                marginBottom: '8px'
+              }}>
+                Mentés után tudsz dokumentumokat feltölteni és letölteni.
+              </div>
+              <ul style={{
+                margin: 0,
+                paddingLeft: '18px',
+                color: 'var(--game-brown-medium)',
+                lineHeight: 1.6
+              }}>
+                <li>Támogatott formátumok: PDF, Word, Excel, TXT, OpenDocument</li>
+                <li>Maximális fájlméret: 20MB</li>
+                <li>Garanciajegy, számla vagy kézikönyv is feltölthető</li>
+              </ul>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Form akciók */}
