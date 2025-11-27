@@ -12,9 +12,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { itemsAPI, categoriesAPI, statsAPI, usersAPI, locationsAPI } from './services/api';
 import ItemCard from './components/ItemCard';
 import ItemFormGameUI from './components/ItemForm-game-ui';
+import Alerts from './components/Alerts';
+import Statistics from './components/Statistics';
+import QRScanner from './components/QRScanner';
 import './styles/inventory-game-ui.css';
 
 function AppGameUI() {
@@ -28,7 +32,8 @@ function AppGameUI() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formDirty, setFormDirty] = useState(false);
-  const [selectedView, setSelectedView] = useState('Items');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // State management - Users
   const [users, setUsers] = useState([]);
@@ -53,10 +58,27 @@ function AppGameUI() {
 
   // Sidebar menü
   const sidebarMenu = [
-    { id: 'Items', label: 'Items', icon: '📦' },
-    { id: 'Alerts', label: 'Alerts', icon: '⚠️' },
-    { id: 'Settings', label: 'Settings', icon: '⚙️' }
+    { id: 'Items', label: 'Items', icon: '📦', path: '/' },
+    { id: 'Alerts', label: 'Alerts', icon: '⚠️', path: '/alerts' },
+    { id: 'Statistics', label: 'Statisztikák', icon: '📊', path: '/statistics' },
+    { id: 'QR', label: 'QR Scanner', icon: '📷', path: '/qr-scanner' },
+    { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' }
   ];
+
+  const activeView = (() => {
+    switch (location.pathname) {
+      case '/alerts':
+        return 'Alerts';
+      case '/statistics':
+        return 'Statistics';
+      case '/qr-scanner':
+        return 'QR';
+      case '/settings':
+        return 'Settings';
+      default:
+        return 'Items';
+    }
+  })();
 
   // Kezdeti adatok betöltése
   useEffect(() => {
@@ -203,16 +225,12 @@ function AppGameUI() {
     }
   };
 
-  // Sidebar kattintás
-  const handleSidebarClick = (viewId) => {
-    setSelectedView(viewId);
-    
-    // Load data for Settings view
-    if (viewId === 'Settings') {
+  useEffect(() => {
+    if (activeView === 'Settings') {
       loadUsers();
       loadLocations();
     }
-  };
+  }, [activeView]);
 
   // User management
   const handleUserManagement = () => {
@@ -317,54 +335,6 @@ function AppGameUI() {
     );
   };
 
-  // Renderelés - Alerts view
-  const renderAlertsView = () => {
-    return (
-      <div>
-        <div className="game-alert game-alert-warning">
-          <div className="game-alert-header">
-            ⚠️ Low Supplies
-          </div>
-          <div className="game-alert-content">
-            <p><strong>Warning:</strong> The stock of certain items is running low.</p>
-            <p>Jelenleg <strong>{lowStockItems.length} tárgy</strong> készlete alacsony.</p>
-          </div>
-        </div>
-
-        {lowStockItems.length > 0 ? (
-          <div className="game-items-list">
-            {lowStockItems.map(item => (
-              <div key={item.id} className="game-item-list-row">
-                <div className="game-item-list-left">
-                  <div className="game-item-list-icon">⚠️</div>
-                  <div className="game-item-list-info">
-                    <h3>{item.name}</h3>
-                    <p>Mennyiség: {item.quantity} • Min: {item.min_quantity}</p>
-                  </div>
-                </div>
-                <div className="game-item-list-right">
-                  <span className="game-status-badge low">LOW</span>
-                  <button 
-                    className="game-btn game-btn-small game-btn-primary"
-                    onClick={() => handleEditItem(item)}
-                  >
-                    Feltölt
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="game-empty-state">
-            <div className="game-empty-icon">✅</div>
-            <h2 className="game-empty-title">Minden rendben!</h2>
-            <p className="game-empty-text">Nincs alacsony készletű tárgy.</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   // Renderelés - Settings view
   const renderSettingsView = () => {
     return (
@@ -424,7 +394,12 @@ function AppGameUI() {
               </div>
             </div>
             <div className="game-item-list-right">
-              <button className="game-btn game-btn-small">Hamarosan</button>
+              <button
+                className="game-btn game-btn-small game-btn-primary"
+                onClick={() => navigate('/alerts')}
+              >
+                Megnyitás
+              </button>
             </div>
           </div>
 
@@ -437,7 +412,30 @@ function AppGameUI() {
               </div>
             </div>
             <div className="game-item-list-right">
-              <button className="game-btn game-btn-small">Hamarosan</button>
+              <button
+                className="game-btn game-btn-small game-btn-primary"
+                onClick={() => navigate('/statistics')}
+              >
+                Megtekintés
+              </button>
+            </div>
+          </div>
+
+          <div className="game-item-list-row">
+            <div className="game-item-list-left">
+              <div className="game-item-list-icon">📷</div>
+              <div className="game-item-list-info">
+                <h3>QR Beolvasó</h3>
+                <p>QR kódok gyors keresése és megnyitása</p>
+              </div>
+            </div>
+            <div className="game-item-list-right">
+              <button
+                className="game-btn game-btn-small game-btn-primary"
+                onClick={() => navigate('/qr-scanner')}
+              >
+                Megnyitás
+              </button>
             </div>
           </div>
         </div>
@@ -494,8 +492,8 @@ function AppGameUI() {
             {sidebarMenu.map(item => (
               <li
                 key={item.id}
-                className={`game-sidebar-item ${selectedView === item.id ? 'active' : ''}`}
-                onClick={() => handleSidebarClick(item.id)}
+                className={`game-sidebar-item ${activeView === item.id ? 'active' : ''}`}
+                onClick={() => navigate(item.path)}
               >
                 {item.icon} {item.label}
               </li>
@@ -503,7 +501,7 @@ function AppGameUI() {
           </ul>
 
           {/* Sidebar extra - doboz illusztráció */}
-          {selectedView === 'Items' && (
+          {activeView === 'Items' && (
             <div style={{ marginTop: '30px', textAlign: 'center' }}>
               <div style={{ fontSize: '80px', marginBottom: '10px' }}>📦</div>
               <div style={{ fontSize: '40px', color: 'var(--game-green-dark)' }}>⬆️</div>
@@ -513,58 +511,65 @@ function AppGameUI() {
 
         {/* Content */}
         <div className="game-content">
-          {selectedView === 'Items' && (
-            <>
-              {/* Search Section */}
-              <div className="game-search-section">
-                <input
-                  type="text"
-                  className="game-search-input"
-                  placeholder="🔍 Keresés a tárgyak között..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
-              </div>
+          <Routes>
+            <Route
+              path="/"
+              element={(
+                <>
+                  {/* Search Section */}
+                  <div className="game-search-section">
+                    <input
+                      type="text"
+                      className="game-search-input"
+                      placeholder="🔍 Keresés a tárgyak között..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                    />
+                  </div>
 
-              {/* Category Tabs */}
-              <div className="game-tabs">
-                <button
-                  className={`game-tab ${selectedCategory === null ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    loadData();
-                  }}
-                >
-                  Összes
-                </button>
-                {categories.map(cat => (
-                  <button
-                    key={cat.id}
-                    className={`game-tab ${selectedCategory === cat.name ? 'active' : ''}`}
-                    onClick={() => handleCategoryFilter(cat.name)}
-                  >
-                    {cat.icon} {cat.name}
-                  </button>
-                ))}
-              </div>
+                  {/* Category Tabs */}
+                  <div className="game-tabs">
+                    <button
+                      className={`game-tab ${selectedCategory === null ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        loadData();
+                      }}
+                    >
+                      Összes
+                    </button>
+                    {categories.map(cat => (
+                      <button
+                        key={cat.id}
+                        className={`game-tab ${selectedCategory === cat.name ? 'active' : ''}`}
+                        onClick={() => handleCategoryFilter(cat.name)}
+                      >
+                        {cat.icon} {cat.name}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Items Grid */}
-              {renderItemsView()}
+                  {/* Items Grid */}
+                  {renderItemsView()}
 
-              {/* Footer Actions */}
-              <div className="game-footer-actions">
-                <button className="game-btn game-btn-primary" onClick={handleAddItem}>
-                  ➕ Új tárgy
-                </button>
-                <button className="game-btn game-btn-success" onClick={loadData}>
-                  🔄 Frissítés
-                </button>
-              </div>
-            </>
-          )}
-
-          {selectedView === 'Alerts' && renderAlertsView()}
-          {selectedView === 'Settings' && renderSettingsView()}
+                  {/* Footer Actions */}
+                  <div className="game-footer-actions">
+                    <button className="game-btn game-btn-primary" onClick={handleAddItem}>
+                      ➕ Új tárgy
+                    </button>
+                    <button className="game-btn game-btn-success" onClick={loadData}>
+                      🔄 Frissítés
+                    </button>
+                  </div>
+                </>
+              )}
+            />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/statistics" element={<Statistics />} />
+            <Route path="/qr-scanner" element={<QRScanner />} />
+            <Route path="/settings" element={renderSettingsView()} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </div>
       </div>
 
