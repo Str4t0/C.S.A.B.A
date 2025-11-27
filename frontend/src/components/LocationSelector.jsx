@@ -58,8 +58,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
     return tree;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
       await api.createLocation(formData);
       setShowForm(false);
@@ -130,7 +129,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
       {showForm && (
         <div className="location-form">
           <h4>Új helyszín</h4>
-          <form onSubmit={handleSubmit}>
+          <div>
             <input
               type="text"
               placeholder="Név *"
@@ -144,7 +143,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               rows="3"
             />
-            
+
             <select
               value={formData.parent_id || ''}
               onChange={(e) => setFormData({...formData, parent_id: e.target.value ? parseInt(e.target.value) : null})}
@@ -173,16 +172,16 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-primary">Létrehozás</button>
-              <button 
-                type="button" 
+              <button type="button" className="btn-primary" onClick={handleSubmit}>Létrehozás</button>
+              <button
+                type="button"
                 className="btn-secondary"
                 onClick={() => setShowForm(false)}
               >
                 Mégse
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 

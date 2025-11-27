@@ -1,4 +1,5 @@
 import React from 'react';
+import { imagesAPI } from '../services/api';
 import '../styles/inventory-game-ui.css';
 
 function ItemCardGameUI({ item, status, onDelete, onEdit }) {
@@ -32,8 +33,8 @@ function ItemCardGameUI({ item, status, onDelete, onEdit }) {
   };
 
   // Kép URL
-  const imageUrl = item.image_filename 
-    ? `http://localhost:8000/uploads/${item.image_filename}`
+  const imageUrl = item.image_filename
+    ? imagesAPI.getImageUrl(item.image_filename)
     : null;
 
   // Leírás rövidítés
@@ -156,7 +157,7 @@ function ItemCardGameUI({ item, status, onDelete, onEdit }) {
         {onEdit && (
           <button
             className="game-btn game-btn-small"
-            onClick={() => onEdit(item.id)}
+            onClick={() => onEdit(item)}
           >
             ✏️ Szerkeszt
           </button>
