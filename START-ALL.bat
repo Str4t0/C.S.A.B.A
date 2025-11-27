@@ -10,15 +10,16 @@ echo - Frontend: http://localhost:3000
 echo - Halozati eleres: http://[HELYI-IP]:3000
 echo.
 
-echo A szkript konyvtara: %~dp0
-pushd "%~dp0"
+set "SCRIPT_DIR=%~dp0"
+echo A szkript konyvtara: %SCRIPT_DIR%
+pushd "%SCRIPT_DIR%"
 
 echo [1/2] Backend inditasa...
-start "Backend Server" cmd /k "cd backend ^&^& python -m pip install --quiet -r requirements.txt ^&^& echo. ^&^& echo Backend indul... ^&^& echo. ^&^& python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend Server" cmd /k "cd /d \"%SCRIPT_DIR%backend\" ^&^& python -m pip install --quiet -r requirements.txt ^&^& echo. ^&^& echo Backend indul... ^&^& echo. ^&^& python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 echo [2/2] Frontend inditasa...
 timeout /t 5 /nobreak >nul
-start "Frontend Dev Server" cmd /k "cd frontend ^&^& npm install ^&^& echo. ^&^& echo Frontend indul... ^&^& echo. ^&^& npm run dev -- --host"
+start "Frontend Dev Server" cmd /k "cd /d \"%SCRIPT_DIR%frontend\" ^&^& npm install ^&^& echo. ^&^& echo Frontend indul... ^&^& echo. ^&^& npm run dev -- --host"
 
 echo.
 echo ================================================
