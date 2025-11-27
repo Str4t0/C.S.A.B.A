@@ -39,8 +39,7 @@ const UserSelector = ({ selectedUserId, onUserChange, showCreateNew = true }) =>
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
       await api.createUser(formData);
       setShowForm(false);
@@ -117,57 +116,57 @@ const UserSelector = ({ selectedUserId, onUserChange, showCreateNew = true }) =>
 
       {/* Új user form */}
       {showForm && (
-        <div className="user-form">
-          <h4>Új felhasználó</h4>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Felhasználónév *"
-              value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Megjelenített név *"
-              value={formData.display_name}
-              onChange={(e) => setFormData({...formData, display_name: e.target.value})}
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email (opcionális)"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-            />
-            
-            <div className="color-picker">
-              <label>Avatar szín:</label>
-              <div className="color-grid">
-                {AVATAR_COLORS.map(color => (
-                  <div
-                    key={color}
-                    className={`color-option ${formData.avatar_color === color ? 'selected' : ''}`}
-                    style={{ background: color }}
-                    onClick={() => setFormData({...formData, avatar_color: color})}
-                  />
-                ))}
-              </div>
-            </div>
+      <div className="user-form">
+        <h4>Új felhasználó</h4>
+        <div>
+          <input
+            type="text"
+            placeholder="Felhasználónév *"
+            value={formData.username}
+            onChange={(e) => setFormData({...formData, username: e.target.value})}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Megjelenített név *"
+            value={formData.display_name}
+            onChange={(e) => setFormData({...formData, display_name: e.target.value})}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email (opcionális)"
+            value={formData.email}
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
+          />
 
-            <div className="form-actions">
-              <button type="submit" className="btn-primary">Létrehozás</button>
-              <button 
-                type="button" 
-                className="btn-secondary"
-                onClick={() => setShowForm(false)}
-              >
-                Mégse
-              </button>
+          <div className="color-picker">
+            <label>Avatar szín:</label>
+            <div className="color-grid">
+              {AVATAR_COLORS.map(color => (
+                <div
+                  key={color}
+                  className={`color-option ${formData.avatar_color === color ? 'selected' : ''}`}
+                  style={{ background: color }}
+                  onClick={() => setFormData({...formData, avatar_color: color})}
+                />
+              ))}
             </div>
-          </form>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="btn-primary" onClick={handleSubmit}>Létrehozás</button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setShowForm(false)}
+            >
+              Mégse
+            </button>
+          </div>
         </div>
-      )}
+      </div>
+    )}
 
       <style>{`
         .user-selector {
