@@ -14,7 +14,7 @@ echo A szkript konyvtara: %~dp0
 pushd "%~dp0"
 
 echo [1/2] Backend inditasa...
-start "Backend Server" cmd /k "cd backend ^&^& python -m pip install --quiet fastapi uvicorn[standard] sqlalchemy pydantic pillow ^&^& python-multipart aiofiles python-dotenv ^&^& echo. ^&^& echo Backend indul... ^&^& echo. ^&^& python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend Server" cmd /k "cd backend ^&^& python -m pip install --quiet -r requirements.txt ^&^& echo. ^&^& echo Backend indul... ^&^& echo. ^&^& python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 echo [2/2] Frontend inditasa...
 timeout /t 5 /nobreak >nul
