@@ -1,5 +1,7 @@
 fastapi==0.104.1
-uvicorn[standard]==0.24.0
+# Uvicorn Windows-friendly install: avoid uvloop/httptools on Windows
+uvicorn==0.24.0; platform_system == "Windows"
+uvicorn[standard]==0.24.0; platform_system != "Windows"
 sqlalchemy==2.0.23
 pydantic==2.5.0
 pillow==10.1.0

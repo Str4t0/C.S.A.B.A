@@ -3,7 +3,7 @@
  * Frontend Developer: Sarah Kim
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { imagesAPI } from '../services/api';
 import CameraCapture from './CameraCapture';
 
@@ -13,6 +13,16 @@ const FileUpload = ({ onImageUploaded, currentImage }) => {
   const [preview, setPreview] = useState(currentImage ? imagesAPI.getImageUrl(currentImage) : null);
   const [showCamera, setShowCamera] = useState(false);
   const [uploadedFilename, setUploadedFilename] = useState(currentImage || null);
+
+  useEffect(() => {
+    if (currentImage) {
+      setPreview(imagesAPI.getImageUrl(currentImage));
+      setUploadedFilename(currentImage);
+    } else {
+      setPreview(null);
+      setUploadedFilename(null);
+    }
+  }, [currentImage]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
