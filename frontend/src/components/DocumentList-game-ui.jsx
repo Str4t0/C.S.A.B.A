@@ -18,7 +18,7 @@ const DocumentListGameUI = ({ itemId, refreshTrigger }) => {
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      const data = await documentsAPI.getByItem(itemId);
+      const data = await documentsAPI.getByItemId(itemId);  // JAVÍTVA: getByItemId
       setDocuments(data || []);
     } catch (error) {
       console.error('Dokumentumok betöltési hiba:', error);

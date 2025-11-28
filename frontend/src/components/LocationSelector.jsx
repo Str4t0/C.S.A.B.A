@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import { locationsAPI } from '../services/api';  // JAVÍTVA: locationsAPI import
 
 const LOCATION_ICONS = [
   '🏠', '🏢', '🏪', '🛋️', '🛏️', '🍳',
@@ -30,7 +30,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
   const loadLocations = async () => {
     try {
       setLoading(true);
-      const data = await api.getLocations();
+      const data = await locationsAPI.getAll();  // JAVÍTVA: locationsAPI használata
       setLocations(data || []); // JAVÍTVA: null check
     } catch (error) {
       console.error('Location betöltési hiba:', error);
@@ -60,7 +60,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
 
   const handleSubmit = async () => {
     try {
-      await api.createLocation(formData);
+      await locationsAPI.create(formData);  // JAVÍTVA: locationsAPI használata
       setShowForm(false);
       setFormData({
         name: '',

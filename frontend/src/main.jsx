@@ -5,6 +5,8 @@
  */
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'                         // Eredeti app
 import AppGameUI from './App-game-ui.jsx'           // Game UI app
 import './styles/main.css'
@@ -43,6 +45,9 @@ function AppSwitcher() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AppSwitcher />
+    <BrowserRouter>
+      <AppSwitcher />
+      <Toaster position="top-right" />
+    </BrowserRouter>
   </React.StrictMode>,
 )

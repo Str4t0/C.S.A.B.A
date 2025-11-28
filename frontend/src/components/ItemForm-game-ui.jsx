@@ -13,12 +13,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import FileUpload from './FileUpload';
 import DocumentUploadGameUI from './DocumentUpload-game-ui';
 import DocumentListGameUI from './DocumentList-game-ui';
 import UserSelector from './UserSelector';
 import LocationSelector from './LocationSelector';
-import { qrAPI } from '../services/api';
+import { api } from '../services/api';
 
 const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange }) => {
   const [formData, setFormData] = useState({
@@ -32,11 +33,12 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
     user_id: null,
     location_id: null,
     quantity: 1,
-    min_quantity: null
+    min_quantity: null,
+    qr_code: null
   });
 
   const [qrCode, setQrCode] = useState(null);
-  const [generatingQR, setGeneratingQR] = useState(false);
+  const [qrGenerating, setQrGenerating] = useState(null);
   const [documentRefreshKey, setDocumentRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -52,13 +54,12 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
         user_id: item.user_id || null,
         location_id: item.location_id || null,
         quantity: item.quantity || 1,
-        min_quantity: item.min_quantity || null
+        min_quantity: item.min_quantity || null,
+        qr_code: item.qr_code || null
       });
 
       // QR kód betöltése ha van
-      if (item.qr_code) {
-        setQrCode(item.qr_code);
-      }
+      setQrCode(item.qr_code || null);
     } else {
       setFormData({
         name: '',
@@ -71,7 +72,8 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
         user_id: null,
         location_id: null,
         quantity: 1,
-        min_quantity: null
+        min_quantity: null,
+        qr_code: null
       });
       setQrCode(null);
     }
@@ -137,32 +139,57 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
     onSubmit(submitData);
   };
 
-  const handleGenerateQR = async (size = 'medium') => {
-    if (!item || !item.id) {
-      alert('Először mentsd el a tárgyat, majd generálhatsz QR kódot!');
+  const handleGenerateQR = async (size) => {
+    const itemId = item?.id;
+
+    if (!itemId) {
+      toast.error('Először mentsd el a tárgyat!');
       return;
     }
 
-    setGeneratingQR(true);
     try {
-      const response = await qrAPI.generate(item.id, size);
-      setQrCode(response.qr_code);
-      alert('✅ QR kód sikeresen generálva!');
+      setQrGenerating(size);
+
+      // 1. Generálás
+      console.log(`🔲 QR generálás indítása: ${itemId}, ${size}`);
+      const response = await api.post(`/qr/generate/${itemId}?size=${size}`);
+      console.log('✅ QR generálás válasz:', response.data);
+
+      // 2. State frissítés
+      setFormData(prev => ({
+        ...prev,
+        qr_code: response.data.qr_code
+      }));
+      setQrCode(response.data.qr_code);
+
+      toast.success(`${size.toUpperCase()} QR kód generálva!`);
+
+      // 3. Kis delay majd letöltés
+      await new Promise(resolve => setTimeout(resolve, 500));  // 500ms delay
+
+      // 4. Letöltés - JAVÍTOTT URL
+      const downloadUrl = `${api.defaults.baseURL}/qr/download/${itemId}/${size}`;
+      console.log('📥 Letöltés URL:', downloadUrl);
+      window.open(downloadUrl, '_blank');
       
-      // Automatikus letöltés
-      handleDownloadQR(size);
     } catch (error) {
-      console.error('QR generálási hiba:', error);
-      alert('Hiba történt a QR kód generálása során!');
+      console.error('❌ QR generálási hiba:', error);
+      console.error('Hiba részletek:', error.response?.data);
+      toast.error(error.response?.data?.detail || 'QR generálási hiba');
     } finally {
-      setGeneratingQR(false);
+      setQrGenerating(null);
     }
   };
 
   const handleDownloadQR = (size) => {
-    if (!item || !item.id) return;
-    
-    const downloadUrl = qrAPI.getDownloadUrl(item.id, size);
+    const itemId = item?.id;
+    if (!itemId) {
+      toast.error('Először mentsd el a tárgyat!');
+      return;
+    }
+
+    // JAVÍTVA: teljes URL használata
+    const downloadUrl = `${api.defaults.baseURL}/qr/download/${itemId}/${size}`;
     window.open(downloadUrl, '_blank');
   };
 
@@ -524,30 +551,34 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
                   }}>✅ Aktív</span>
                 </div>
                 
+                {/* JAVÍTVA: Generálás gombok (újragenerálja + letölti) */}
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    className="game-btn game-btn-small"
-                    onClick={() => handleDownloadQR('small')}
+                    className="game-btn game-btn-primary game-btn-small"
+                    onClick={() => handleGenerateQR('small')}
+                    disabled={!!qrGenerating}
                     style={{ flex: 1, minWidth: '150px' }}
                   >
-                    📥 Kis címke (3x3cm)
+                    {qrGenerating === 'small' ? '⏳ Generálás...' : '🔲 Kis címke (3x3cm)'}
                   </button>
                   <button
                     type="button"
-                    className="game-btn game-btn-small"
-                    onClick={() => handleDownloadQR('medium')}
+                    className="game-btn game-btn-primary game-btn-small"
+                    onClick={() => handleGenerateQR('medium')}
+                    disabled={!!qrGenerating}
                     style={{ flex: 1, minWidth: '150px' }}
                   >
-                    📥 Közepes (5x5cm)
+                    {qrGenerating === 'medium' ? '⏳ Generálás...' : '🔲 Közepes (5x5cm)'}
                   </button>
                   <button
                     type="button"
-                    className="game-btn game-btn-small"
-                    onClick={() => handleDownloadQR('large')}
+                    className="game-btn game-btn-primary game-btn-small"
+                    onClick={() => handleGenerateQR('large')}
+                    disabled={!!qrGenerating}
                     style={{ flex: 1, minWidth: '150px' }}
                   >
-                    📥 Nagy (8x8cm)
+                    {qrGenerating === 'large' ? '⏳ Generálás...' : '🔲 Nagy (8x8cm)'}
                   </button>
                 </div>
               </div>
@@ -565,25 +596,25 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
                     type="button"
                     className="game-btn game-btn-primary game-btn-small"
                     onClick={() => handleGenerateQR('small')}
-                    disabled={generatingQR}
+                    disabled={!!qrGenerating}
                   >
-                    {generatingQR ? '⏳ Generálás...' : '🔲 Kis QR (3x3cm)'}
+                    {qrGenerating === 'small' ? '⏳ Generálás...' : '🔲 Kis QR (3x3cm)'}
                   </button>
                   <button
                     type="button"
                     className="game-btn game-btn-primary game-btn-small"
                     onClick={() => handleGenerateQR('medium')}
-                    disabled={generatingQR}
+                    disabled={!!qrGenerating}
                   >
-                    {generatingQR ? '⏳ Generálás...' : '🔲 Közepes (5x5cm)'}
+                    {qrGenerating === 'medium' ? '⏳ Generálás...' : '🔲 Közepes (5x5cm)'}
                   </button>
                   <button
                     type="button"
                     className="game-btn game-btn-primary game-btn-small"
                     onClick={() => handleGenerateQR('large')}
-                    disabled={generatingQR}
+                    disabled={!!qrGenerating}
                   >
-                    {generatingQR ? '⏳ Generálás...' : '🔲 Nagy (8x8cm)'}
+                    {qrGenerating === 'large' ? '⏳ Generálás...' : '🔲 Nagy (8x8cm)'}
                   </button>
                 </div>
               </div>

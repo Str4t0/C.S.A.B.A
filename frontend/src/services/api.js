@@ -1,375 +1,408 @@
 /**
- * API Service - Backend kommunikáció
+ * API Service - Axios konfiguráció
  * Frontend Developer: Sarah Kim
  */
 
 import axios from 'axios';
 
-// Dinamikus backend URL meghatározása
-const getBackendURL = () => {
-  // Ha production build (statikus fájlok), használd ugyanazt a host-ot
-  if (import.meta.env.PROD) {
-    return window.location.origin;
-  }
-  
-  // Fejlesztési módban
-  const hostname = window.location.hostname;
-  
-  // Ha localhost, használd a localhost backend-et
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:8000';
-  }
-  
-  // Egyébként (pl. 192.168.1.100) használd ugyanazt a hostname-et 8000-es porton
-  return `http://${hostname}:8000`;
-};
+// API base URL - módosítsd ha szükséges
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-const BACKEND_URL = getBackendURL();
-const API_BASE_URL = `${BACKEND_URL}/api`;
-
-console.log('Backend URL:', BACKEND_URL); // Debug célból
-
-const api = axios.create({
+// Axios instance létrehozása
+export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 });
+
+// Request interceptor - token hozzáadása ha van
+api.interceptors.request.use(
+  (config) => {
+    // Ha van token, add hozzá a headerhez
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - hibakezelés
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Szerver válasz hiba
+      console.error('API Error:', error.response.data);
+      
+      // 401 Unauthorized - logout
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    } else if (error.request) {
+      // Nincs válasz a szervertől
+      console.error('Network Error:', error.request);
+    } else {
+      // Egyéb hiba
+      console.error('Error:', error.message);
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // ============= ITEMS API =============
 
 export const itemsAPI = {
-  // Összes item lekérése
+  // Összes tárgy lekérése
   getAll: async (category = null) => {
-    const params = category ? { category } : {};
-    const response = await api.get('/items', { params });
-    return response.data;
+    try {
+      const url = category ? `/items?category=${category}` : '/items';
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Items fetch error:', error);
+      throw error;
+    }
   },
 
-  // Egy item lekérése
+  // Egy tárgy lekérése ID alapján
   getById: async (id) => {
-    const response = await api.get(`/items/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/items/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Item fetch error:', error);
+      throw error;
+    }
   },
 
-  // Keresés
+  // Tárgy keresése
   search: async (query) => {
-    const response = await api.get('/items/search', { params: { q: query } });
-    return response.data;
+    try {
+      const response = await api.get(`/items/search?q=${encodeURIComponent(query)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Search error:', error);
+      throw error;
+    }
   },
 
-  // Új item létrehozása
+  // Új tárgy létrehozása
   create: async (itemData) => {
-    const response = await api.post('/items', itemData);
-    return response.data;
+    try {
+      const response = await api.post('/items', itemData);
+      return response.data;
+    } catch (error) {
+      console.error('Item create error:', error);
+      throw error;
+    }
   },
 
-  // Item frissítése
+  // Tárgy frissítése
   update: async (id, itemData) => {
-    const response = await api.put(`/items/${id}`, itemData);
-    return response.data;
+    try {
+      const response = await api.put(`/items/${id}`, itemData);
+      return response.data;
+    } catch (error) {
+      console.error('Item update error:', error);
+      throw error;
+    }
   },
 
-  // Item törlése
+  // Tárgy törlése
   delete: async (id) => {
-    const response = await api.delete(`/items/${id}`);
-    return response.data;
-  },
-};
-
-// ============= IMAGES API =============
-
-export const imagesAPI = {
-  // Kép feltöltése
-  upload: async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await api.post('/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  },
-
-  // Kép URL generálása - abszolút URL mobilhoz
-  getImageUrl: (filename) => {
-    return `${BACKEND_URL}/uploads/${filename}`;
-  },
-
-  // Thumbnail URL generálása - abszolút URL mobilhoz
-  getThumbnailUrl: (filename) => {
-    return `${BACKEND_URL}/uploads/thumbnails/thumb_${filename}`;
-  },
-
-  // Kép törlése
-  delete: async (filename) => {
-    const response = await api.delete(`/images/${filename}`);
-    return response.data;
-  },
+    try {
+      const response = await api.delete(`/items/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Item delete error:', error);
+      throw error;
+    }
+  }
 };
 
 // ============= CATEGORIES API =============
 
 export const categoriesAPI = {
-  // Összes kategória lekérése
   getAll: async () => {
-    const response = await api.get('/categories');
-    return response.data;
-  },
-
-  // Új kategória létrehozása
-  create: async (categoryData) => {
-    const response = await api.post('/categories', categoryData);
-    return response.data;
-  },
-};
-
-// ============= STATISTICS API =============
-
-export const statsAPI = {
-  // Statisztikák lekérése
-  get: async () => {
-    const response = await api.get('/stats');
-    return response.data;
-  },
+    try {
+      const response = await api.get('/categories');
+      return response.data;
+    } catch (error) {
+      console.error('Categories fetch error:', error);
+      return [];
+    }
+  }
 };
 
 // ============= USERS API =============
 
 export const usersAPI = {
-  // Összes user lekérése
   getAll: async () => {
-    const response = await api.get('/users');
-    return response.data;
+    try {
+      const response = await api.get('/users');
+      return response.data;
+    } catch (error) {
+      console.error('Users fetch error:', error);
+      return [];
+    }
   },
 
-  // Egy user lekérése
   getById: async (id) => {
-    const response = await api.get(`/users/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('User fetch error:', error);
+      throw error;
+    }
   },
 
-  // User létrehozása
   create: async (userData) => {
-    const response = await api.post('/users', userData);
-    return response.data;
+    try {
+      const response = await api.post('/users', userData);
+      return response.data;
+    } catch (error) {
+      console.error('User create error:', error);
+      throw error;
+    }
   },
 
-  // User frissítése
-  update: async (id, userData) => {
-    const response = await api.put(`/users/${id}`, userData);
-    return response.data;
-  },
-
-  // User tárgyai
-  getItems: async (id) => {
-    const response = await api.get(`/users/${id}/items`);
-    return response.data;
-  },
-
-  // User statisztika
-  getStats: async (id) => {
-    const response = await api.get(`/users/${id}/stats`);
-    return response.data;
-  },
+  getUserStats: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('User stats error:', error);
+      throw error;
+    }
+  }
 };
 
 // ============= LOCATIONS API =============
 
 export const locationsAPI = {
-  // Összes helyszín lekérése
   getAll: async () => {
-    const response = await api.get('/locations');
-    return response.data;
+    try {
+      const response = await api.get('/locations');
+      return response.data;
+    } catch (error) {
+      console.error('Locations fetch error:', error);
+      return [];
+    }
   },
 
-  // Gyökér helyszínek
-  getRoots: async () => {
-    const response = await api.get('/locations/roots');
-    return response.data;
-  },
-
-  // Egy helyszín lekérése
   getById: async (id) => {
-    const response = await api.get(`/locations/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/locations/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Location fetch error:', error);
+      throw error;
+    }
   },
 
-  // Helyszín gyerekei
-  getChildren: async (id) => {
-    const response = await api.get(`/locations/${id}/children`);
-    return response.data;
-  },
-
-  // Helyszín létrehozása
   create: async (locationData) => {
-    const response = await api.post('/locations', locationData);
-    return response.data;
-  },
-
-  // Helyszín frissítése
-  update: async (id, locationData) => {
-    const response = await api.put(`/locations/${id}`, locationData);
-    return response.data;
-  },
-
-  // Helyszín törlése
-  delete: async (id) => {
-    const response = await api.delete(`/locations/${id}`);
-    return response.data;
-  },
-
-  // Helyszín tárgyai
-  getItems: async (id, includeChildren = false) => {
-    const response = await api.get(`/locations/${id}/items`, {
-      params: { include_children: includeChildren }
-    });
-    return response.data;
-  },
+    try {
+      const response = await api.post('/locations', locationData);
+      return response.data;
+    } catch (error) {
+      console.error('Location create error:', error);
+      throw error;
+    }
+  }
 };
 
-// ============= QR CODES API =============
+// ============= STATS API =============
+
+export const statsAPI = {
+  get: async () => {
+    try {
+      const response = await api.get('/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Stats fetch error:', error);
+      return {
+        total_items: 0,
+        total_categories: 0,
+        total_value: 0
+      };
+    }
+  },
+
+  getDashboard: async () => {
+    try {
+      const response = await api.get('/stats/dashboard');
+      return response.data;
+    } catch (error) {
+      console.error('Dashboard stats fetch error:', error);
+      throw error;
+    }
+  }
+};
+
+// ============= NOTIFICATIONS API =============
+
+export const notificationsAPI = {
+  getAll: async () => {
+    try {
+      const response = await api.get('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Notifications fetch error:', error);
+      return [];
+    }
+  }
+};
+
+// ============= QR API =============
 
 export const qrAPI = {
-  // QR kód generálás
   generate: async (itemId, size = 'medium') => {
-    const response = await api.post(`/qr/generate/${itemId}`, null, {
-      params: { size }
-    });
-    return response.data;
+    try {
+      const response = await api.post(`/qr/generate/${itemId}?size=${size}`);
+      return response.data;
+    } catch (error) {
+      console.error('QR generate error:', error);
+      throw error;
+    }
   },
 
-  // QR címke letöltési URL
-  getDownloadUrl: (itemId, size = 'medium') => {
-    return `${BACKEND_URL}/api/qr/download/${itemId}/${size}`;
-  },
-
-  // QR kód beolvasás
   scan: async (qrCode) => {
-    const response = await api.get(`/qr/scan/${qrCode}`);
-    return response.data;
+    try {
+      const response = await api.get(`/qr/scan/${qrCode}`);
+      return response.data;
+    } catch (error) {
+      console.error('QR scan error:', error);
+      throw error;
+    }
   },
 
-  // QR kód törlése
-  delete: async (itemId) => {
-    const response = await api.delete(`/qr/${itemId}/qr`);
-    return response.data;
-  },
-
-  // Low stock items
   getLowStock: async () => {
-    const response = await api.get('/qr/low-stock');
-    return response.data;
+    try {
+      const response = await api.get('/qr/low-stock');
+      return response.data;
+    } catch (error) {
+      console.error('Low stock fetch error:', error);
+      return [];
+    }
+  }
+};
+
+// ============= UPLOAD API =============
+
+export const uploadAPI = {
+  image: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      throw error;
+    }
   },
+
+  document: async (itemId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post(`/items/${itemId}/documents`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Document upload error:', error);
+      throw error;
+    }
+  }
+};
+
+// ============= IMAGES API =============
+
+export const imagesAPI = {
+  // Kép URL generálás
+  getImageUrl: (filename) => {
+    if (!filename) return null;
+    // API_BASE_URL-ből kivonjuk az /api részt
+    const baseURL = API_BASE_URL.replace('/api', '');
+    return `${baseURL}/uploads/${filename}`;
+  },
+
+  // Thumbnail URL generálás
+  getThumbnailUrl: (filename) => {
+    if (!filename) return null;
+    // API_BASE_URL-ből kivonjuk az /api részt
+    const baseURL = API_BASE_URL.replace('/api', '');
+    return `${baseURL}/uploads/thumbnails/thumb_${filename}`;
+  },
+
+  // Kép feltöltés
+  upload: async (file) => {
+    return uploadAPI.image(file);
+  }
 };
 
 // ============= DOCUMENTS API =============
 
 export const documentsAPI = {
-  // Dokumentum feltöltése
-  upload: async (itemId, file, documentType = null, description = null) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (documentType) formData.append('document_type', documentType);
-    if (description) formData.append('description', description);
-
-    const response = await api.post(`/items/${itemId}/documents`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+  // Dokumentum feltöltés
+  upload: async (itemId, file) => {
+    return uploadAPI.document(itemId, file);
   },
 
-  // Item dokumentumai
-  getByItem: async (itemId) => {
-    const response = await api.get(`/items/${itemId}/documents`);
-    return response.data;
+  // Dokumentum URL generálás
+  getDocumentUrl: (filename) => {
+    if (!filename) return null;
+    const baseURL = API_BASE_URL.replace('/api', '');
+    return `${baseURL}/documents/${filename}`;
   },
 
-  // Egy dokumentum lekérése
-  getById: async (documentId) => {
-    const response = await api.get(`/documents/${documentId}`);
-    return response.data;
-  },
-
-  // Dokumentum letöltési URL
+  // Dokumentum letöltés URL
   getDownloadUrl: (documentId) => {
-    return `${BACKEND_URL}/api/documents/${documentId}/download`;
+    if (!documentId) return null;
+    return `${API_BASE_URL}/documents/${documentId}/download`;
   },
 
-  // Dokumentum frissítése
-  update: async (documentId, documentType = null, description = null) => {
-    const response = await api.put(`/documents/${documentId}`, {
-      document_type: documentType,
-      description: description
-    });
-    return response.data;
+  // Tárgy dokumentumainak lekérése
+  getByItemId: async (itemId) => {
+    try {
+      const response = await api.get(`/items/${itemId}/documents`);
+      return response.data;
+    } catch (error) {
+      console.error('Documents fetch error:', error);
+      return [];
+    }
   },
 
   // Dokumentum törlése
   delete: async (documentId) => {
-    const response = await api.delete(`/documents/${documentId}`);
-    return response.data;
-  },
+    try {
+      const response = await api.delete(`/documents/${documentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Document delete error:', error);
+      throw error;
+    }
+  }
 };
 
-// Backward compatibility
-export default {
-  // Items
-  getItems: itemsAPI.getAll,
-  getItem: itemsAPI.getById,
-  searchItems: itemsAPI.search,
-  createItem: itemsAPI.create,
-  updateItem: itemsAPI.update,
-  deleteItem: itemsAPI.delete,
-  
-  // Categories
-  getCategories: categoriesAPI.getAll,
-  createCategory: categoriesAPI.create,
-  
-  // Stats
-  getStats: statsAPI.get,
-  getGlobalStats: statsAPI.get, 
-  
-  // Images
-  uploadImage: imagesAPI.upload,
-  getImageUrl: imagesAPI.getImageUrl,
-  getThumbnailUrl: imagesAPI.getThumbnailUrl,
-  deleteImage: imagesAPI.delete,
-
-  // Users
-  getUsers: usersAPI.getAll,
-  getUser: usersAPI.getById,
-  createUser: usersAPI.create,
-  updateUser: usersAPI.update,
-  getUserItems: usersAPI.getItems,
-  getUserStats: usersAPI.getStats,
-
-  // Locations
-  getLocations: locationsAPI.getAll,
-  getRootLocations: locationsAPI.getRoots,
-  getLocation: locationsAPI.getById,
-  getLocationChildren: locationsAPI.getChildren,
-  createLocation: locationsAPI.create,
-  updateLocation: locationsAPI.update,
-  deleteLocation: locationsAPI.delete,
-  getLocationItems: locationsAPI.getItems,
-
-  // QR Codes
-  generateQR: qrAPI.generate,
-  getQRDownloadUrl: qrAPI.getDownloadUrl,
-  scanQR: qrAPI.scan,
-  deleteQR: qrAPI.delete,
-  getLowStockItems: qrAPI.getLowStock,
-
-  // Documents
-  uploadDocument: documentsAPI.upload,
-  getDocuments: documentsAPI.getByItem,
-  getDocument: documentsAPI.getById,
-  getDocumentDownloadUrl: documentsAPI.getDownloadUrl,
-  updateDocument: documentsAPI.update,
-  deleteDocument: documentsAPI.delete,
-};
+// Export default
+export default api;

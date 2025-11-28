@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import { usersAPI } from '../services/api';
 
 const AVATAR_COLORS = [
   '#3498db', '#e74c3c', '#2ecc71', '#f39c12',
@@ -29,7 +29,7 @@ const UserSelector = ({ selectedUserId, onUserChange, showCreateNew = true }) =>
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await api.getUsers();
+      const data = await usersAPI.getAll();  // JAVÍTVA: usersAPI használata
       setUsers(data || []); // JAVÍTVA: null check
     } catch (error) {
       console.error('User betöltési hiba:', error);
@@ -41,7 +41,7 @@ const UserSelector = ({ selectedUserId, onUserChange, showCreateNew = true }) =>
 
   const handleSubmit = async () => {
     try {
-      await api.createUser(formData);
+      await usersAPI.create(formData);  // JAVÍTVA: usersAPI használata
       setShowForm(false);
       setFormData({
         username: '',

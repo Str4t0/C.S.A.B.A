@@ -718,22 +718,615 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .game-header {
+    padding: 15px 20px;
+  }
+  
+  .game-title {
+    font-size: 28px;
+  }
+  
+  .game-subtitle {
+    font-size: 14px;
+  }
+  
+  .game-stats-row {
+    flex-direction: column;
+  }
+  
+  .game-stat-badge {
+    min-width: 100%;
+  }
+  
+  .game-items-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .game-content {
+    padding: 20px;
+  }
+  
+  .game-tabs {
+    justify-content: center;
+  }
+  
+  .game-tab {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+  
+  .game-footer-actions {
+    flex-direction: column;
+  }
+  
+  .game-btn {
+    width: 100%;
+  }
+}
 
-/* ============================================================================
-   MOBIL OPTIMALIZÁLÁS - VÉGLEGES VERZIÓ
-   ============================================================================ */
+/* ========== UTILITY CLASSES ========== */
+.game-text-center {
+  text-align: center;
+}
+
+.game-mb-10 {
+  margin-bottom: 10px;
+}
+
+.game-mb-20 {
+  margin-bottom: 20px;
+}
+
+.game-mt-20 {
+  margin-top: 20px;
+}
+
+.game-p-20 {
+  padding: 20px;
+}
+
+.game-hidden {
+  display: none;
+}
+
+.game-flex {
+  display: flex;
+}
+
+.game-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-gap-10 {
+  gap: 10px;
+}
+
+.game-gap-20 {
+  gap: 20px;
+}
+
+/* ========== ANIMÁCIÓK ========== */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.game-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.game-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========== SCROLLBAR CUSTOMIZATION ========== */
+.game-content::-webkit-scrollbar,
+.game-sidebar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.game-content::-webkit-scrollbar-track,
+.game-sidebar::-webkit-scrollbar-track {
+  background: var(--game-cream-dark);
+  border-radius: 10px;
+}
+
+.game-content::-webkit-scrollbar-thumb,
+.game-sidebar::-webkit-scrollbar-thumb {
+  background: var(--game-brown-light);
+  border-radius: 10px;
+  border: 2px solid var(--game-cream-dark);
+}
+
+.game-content::-webkit-scrollbar-thumb:hover,
+.game-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--game-brown-medium);
+}
+
+/* ============================================
+   GAME UI - KLIKKELHETŐS STAT BADGE-EK
+   ============================================ */
+
+/* Add hozzá az inventory-game-ui.css fájlodhoz */
+
+.game-stat-badge.clickable {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.game-stat-badge.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.game-stat-badge.clickable:hover::before {
+  opacity: 1;
+}
+
+.game-stat-badge.clickable:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 4px var(--game-gold),
+    inset 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.game-stat-badge.clickable:hover .game-stat-icon {
+  transform: scale(1.2) rotate(5deg);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.game-stat-badge.clickable:hover h3 {
+  color: var(--game-gold);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.game-stat-badge.clickable:active {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--game-gold);
+}
+
+/* Mobilon tap feedback */
+@media (hover: none) {
+  .game-stat-badge.clickable:active {
+    transform: scale(0.95);
+  }
+  
+  .game-stat-badge.clickable:active::before {
+    opacity: 1;
+  }
+}
+
+/* Animált tooltip game style */
+.game-stat-badge.clickable::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--game-brown);
+  color: var(--game-cream);
+  padding: 8px 12px;
+  border-radius: var(--radius-small);
+  font-family: var(--font-text);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: var(--border-thin) solid var(--game-gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.game-stat-badge.clickable:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Kis nyíl a tooltip-hoz */
+.game-stat-badge.clickable:hover::after {
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 -4px 0 0 var(--game-gold) inset;
+}
+
+/* Pulsing effect egérrel rámutatáskor */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.2),
+      0 0 0 2px var(--game-gold);
+  }
+  50% {
+    box-shadow: 
+      0 12px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 4px var(--game-gold),
+      0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.game-stat-badge.clickable:hover {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ============================================
+   GAME UI - KLIKKELHETŐS STAT BADGE-EK
+   ============================================ */
+
+/* Add hozzá az inventory-game-ui.css fájlodhoz */
+
+.game-stat-badge.clickable {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.game-stat-badge.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.game-stat-badge.clickable:hover::before {
+  opacity: 1;
+}
+
+.game-stat-badge.clickable:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 4px var(--game-gold),
+    inset 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.game-stat-badge.clickable:hover .game-stat-icon {
+  transform: scale(1.2) rotate(5deg);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.game-stat-badge.clickable:hover h3 {
+  color: var(--game-gold);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.game-stat-badge.clickable:active {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--game-gold);
+}
+
+/* Mobilon tap feedback */
+@media (hover: none) {
+  .game-stat-badge.clickable:active {
+    transform: scale(0.95);
+  }
+  
+  .game-stat-badge.clickable:active::before {
+    opacity: 1;
+  }
+}
+
+/* Pulsing effect egérrel rámutatáskor */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.2),
+      0 0 0 2px var(--game-gold);
+  }
+  50% {
+    box-shadow: 
+      0 12px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 4px var(--game-gold),
+      0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.game-stat-badge.clickable:hover {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+
+/* ============================================
+   MOBIL TOP MENU - Sticky vízszintes navigáció
+   ============================================ */
+
+
+/* ============================================
+   TOOLTIP TÖRLÉSE MINDENRŐL
+   ============================================ */
+
+/* Tooltip buborékok törlése */
+[title]::after,
+.game-stat-badge::after,
+.stat-item::after,
+*[title]::after {
+  display: none !important;
+  content: none !important;
+  opacity: 0 !important;
+}
+
+/* Hover state title elrejtése */
+.game-stat-badge[title],
+.stat-item[title] {
+  position: relative;
+}
+
+/* ============================================
+   STAT BADGE KLIKKELHETŐSÉG (tooltip nélkül)
+   ============================================ */
+
+.game-stat-badge.clickable {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.game-stat-badge.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.game-stat-badge.clickable:hover::before {
+  opacity: 1;
+}
+
+.game-stat-badge.clickable:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 4px var(--game-gold),
+    inset 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.game-stat-badge.clickable:hover .game-stat-icon {
+  transform: scale(1.2) rotate(5deg);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.game-stat-badge.clickable:hover h3 {
+  color: var(--game-gold);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.game-stat-badge.clickable:active {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--game-gold);
+}
+
+/* Mobilon tap feedback */
+@media (hover: none) {
+  .game-stat-badge.clickable:active {
+    transform: scale(0.95);
+  }
+  
+  .game-stat-badge.clickable:active::before {
+    opacity: 1;
+  }
+}
+
+/* Pulsing effect egérrel rámutatáskor */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.2),
+      0 0 0 2px var(--game-gold);
+  }
+  50% {
+    box-shadow: 
+      0 12px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 4px var(--game-gold),
+      0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.game-stat-badge.clickable:hover {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ============================================
+   MENÜ NEVEK MAGYARRA - CSAK CSS!
+   ============================================ */
+
+/* Items → Tárgyak */
+.game-sidebar-item:nth-child(1)::after {
+  content: 'Tárgyak';
+}
+
+.game-sidebar-item:nth-child(1) {
+  font-size: 0; /* Eredeti szöveg elrejtése */
+}
+
+.game-sidebar-item:nth-child(1)::after {
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* Alerts → Értesítések */
+.game-sidebar-item:nth-child(2)::after {
+  content: 'Értesítések';
+}
+
+.game-sidebar-item:nth-child(2) {
+  font-size: 0;
+}
+
+.game-sidebar-item:nth-child(2)::after {
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* Statistics → Statisztikák (ez már magyar) */
+/* QR Scanner → QR Scanner (ez marad) */
+
+/* Settings → Beállítások */
+.game-sidebar-item:nth-child(5)::after {
+  content: 'Beállítások';
+}
+
+.game-sidebar-item:nth-child(5) {
+  font-size: 0;
+}
+
+.game-sidebar-item:nth-child(5)::after {
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* Emoji ikonok megjelenítése */
+.game-sidebar-item::before {
+  font-size: 20px !important;
+  margin-right: 8px;
+}
+
+/* ============================================
+   MOBIL OPTIMALIZÁLÁS
+   ============================================ */
 
 @media (max-width: 768px) {
-  
-  /* ========== 0. FŐBB CONTAINER FLEXBOX ========== */
-  .game-ui-container {
+  /* Sidebar felülre */
+  .game-layout {
     display: flex !important;
     flex-direction: column !important;
   }
+
+  .game-sidebar {
+    width: 100% !important;
+    min-width: 100% !important;
+    padding: 12px !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Menu felirat kisebb */
+  .game-sidebar-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  /* Menü vízszintes scroll */
+  .game-sidebar-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5px;
+  }
+
+  .game-sidebar-menu::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .game-sidebar-menu::-webkit-scrollbar-thumb {
+    background: var(--game-gold);
+    border-radius: 2px;
+  }
+
+  /* Menü item mobil */
+  .game-sidebar-item {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-width: 110px !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  /* Ha font-size: 0 miatt elrejtve volt */
+  .game-sidebar-item {
+    font-size: 0 !important;
+  }
+
+  .game-sidebar-item::after {
+    font-size: 13px !important;
+  }
+
+  /* Doboz illusztráció rejtése */
+  .game-sidebar > div[style*="marginTop"] {
+    display: none !important;
+  }
+
+  /* Content teljes szélesség */
+  .game-content {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+  }
+
+  /* Stats kisebb mobilon */
+  .game-stats-row {
+    gap: 8px;
+  }
+
+  .game-stat-badge {
+    padding: 15px 12px;
+  }
+
+  .game-stat-badge h3 {
+    font-size: 20px;
+  }
+
+  .game-stat-badge p {
+    font-size: 12px;
+  }
+}
+/* ============================================
+   MOBIL REDESIGN - TELJES ÁTRENDEZÉS
+   ============================================ */
+
+@media (max-width: 768px) {
   
   /* ========== 1. HEADER KISEBB ========== */
   .game-header {
-    order: 1 !important;
     padding: 12px 15px !important;
     margin-bottom: 10px !important;
   }
@@ -747,140 +1340,36 @@ body {
     font-size: 11px !important;
   }
 
-  /* ========== 2. LAYOUT ÁTRENDEZÉS ========== */
-  .game-layout {
-    order: 3 !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  /* ========== 3. SIDEBAR → VÍZSZINTES IKON MENÜ ========== */
-  .game-sidebar {
-    order: 2 !important;
-    width: 100% !important;
-    padding: 0 !important;
-    margin-bottom: 10px !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Menu felirat törlése */
-  .game-sidebar-title {
-    display: none !important;
-  }
-
-  /* Menü vízszintes, csak ikonok */
-  .game-sidebar-menu {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-evenly !important;
-    align-items: center !important;
-    gap: 10px !important;
-    padding: 12px 15px !important;
-    margin: 0 !important;
-    background: var(--game-green) !important;
-    border: var(--border-thick) solid var(--game-brown) !important;
-    border-radius: var(--radius-medium) !important;
-  }
-
-  /* Menü gomb - kerek, nagy ikon */
-  .game-sidebar-item {
-    flex: 0 0 auto !important;
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    padding: 0 !important;
-    text-align: center !important;
-    font-size: 0 !important; /* Szöveg elrejtése */
-    border-radius: 50% !important; /* Kerek gomb */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* Emoji ikonok - nagy, ujjal nyomható */
-  .game-sidebar-item:nth-child(1)::before {
-    content: '📦';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(2)::before {
-    content: '⚠️';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(3)::before {
-    content: '📊';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(4)::before {
-    content: '📷';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(5)::before {
-    content: '⚙️';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  /* Active state */
-  .game-sidebar-item.active {
-    background: var(--game-orange) !important;
-    transform: scale(1.15) !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-  }
-
-  /* Tap feedback */
-  .game-sidebar-item:active {
-    transform: scale(0.9) !important;
-  }
-
-  /* Doboz illusztráció + minden más törlése */
-  .game-sidebar > *:not(.game-sidebar-menu) {
-    display: none !important;
-  }
+  /* ========== 2. FŐBB STRUKTÚRA ÁTRENDEZÉSE ========== */
   
-  .game-sidebar > div[style*="marginTop"],
-  .game-sidebar > div[style*="textAlign"],
-  .game-sidebar-title {
-    display: none !important;
+  /* Body wrapper */
+  body > #root > div {
+    display: flex;
+    flex-direction: column;
   }
 
-  /* ========== 4. CONTENT ========== */
-  .game-content {
-    order: 4 !important;
-    width: 100% !important;
-    padding: 0 15px !important;
-  }
-
-  /* ========== 5. STATS KÁRTYÁK LEGALULRA ========== */
+  /* ========== 3. STATS KÁRTYÁK LEGALULRA ========== */
   .game-stats-row {
     order: 999 !important;
-    margin-top: 20px !important;
-    margin-bottom: 20px !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   .game-stat-badge {
     width: 100% !important;
-    padding: 15px !important;
+    padding: 12px 15px !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 15px !important;
+    gap: 12px !important;
+    min-height: auto !important;
   }
 
   .game-stat-icon {
-    font-size: 32px !important;
+    font-size: 28px !important;
     flex-shrink: 0 !important;
   }
 
@@ -890,71 +1379,125 @@ body {
   }
 
   .game-stat-content h3 {
-    font-size: 22px !important;
-    margin-bottom: 3px !important;
+    font-size: 20px !important;
+    margin-bottom: 2px !important;
   }
 
   .game-stat-content p {
-    font-size: 13px !important;
+    font-size: 12px !important;
     margin: 0 !important;
   }
 
-  /* ========== 6. TÁRGY KÁRTYÁK ========== */
+  /* ========== 4. LAYOUT ÁTRENDEZÉS ========== */
+  .game-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* ========== 5. SIDEBAR KOMPAKT ========== */
+  .game-sidebar {
+    order: 1 !important;
+    width: 100% !important;
+    padding: 10px 15px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Menu felirat kisebb */
+  .game-sidebar-title {
+    font-size: 16px !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 5px !important;
+  }
+
+  /* Menü FÜGGŐLEGES, kompakt */
+  .game-sidebar-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  /* Menü item kompakt */
+  .game-sidebar-item {
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  /* Doboz illusztráció KISEBB */
+  .game-sidebar > div[style*="marginTop"] {
+    margin-top: 10px !important;
+  }
+
+  .game-sidebar > div[style*="marginTop"] > div:first-child {
+    font-size: 40px !important; /* 80px → 40px */
+    margin-bottom: 5px !important;
+  }
+
+  .game-sidebar > div[style*="marginTop"] > div:last-child {
+    font-size: 24px !important; /* 40px → 24px */
+  }
+
+  /* ========== 6. CONTENT ========== */
+  .game-content {
+    order: 2 !important;
+    width: 100% !important;
+    padding: 0 15px !important;
+  }
+
+  .game-content-area {
+    order: 1 !important;
+  }
+
+  /* ========== 7. TÁRGY KÁRTYÁK ========== */
   .game-items-grid {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    gap: 10px !important;
   }
 
   .game-item-card {
-    padding: 15px !important;
+    padding: 12px !important;
   }
 
-  /* ========== 7. KATEGÓRIA FILTER ========== */
+  /* ========== 8. KATEGÓRIA FILTER ========== */
   .game-category-filter {
-    gap: 8px !important;
-    margin-bottom: 15px !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
     flex-wrap: wrap !important;
   }
 
   .game-category-btn {
-    padding: 8px 12px !important;
+    padding: 6px 12px !important;
     font-size: 12px !important;
   }
 
-  /* ========== 8. KERESÉS ========== */
+  /* ========== 9. KERESÉS ========== */
   .game-search-bar {
-    margin-bottom: 15px !important;
+    margin-bottom: 12px !important;
   }
 
   .game-search-bar input {
     font-size: 14px !important;
-    padding: 12px 15px !important;
+    padding: 10px 15px !important;
   }
 
-  /* ========== 9. TOOLTIP TÖRLÉSE ========== */
-  [title]::after,
-  .game-stat-badge::after,
-  .stat-item::after {
-    display: none !important;
-    content: none !important;
+  /* ========== 10. CONTENT HEADER ========== */
+  .game-content-header {
+    margin-bottom: 15px !important;
   }
 
-  /* ========== 10. STAT BADGE KLIKKELHETŐSÉG ========== */
-  .game-stat-badge.clickable {
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .game-stat-badge.clickable:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  .game-content-title {
+    font-size: 20px !important;
   }
 
 }
 
-/* ========== TABLET (769px - 1024px) - Eredeti layout ========== */
+/* ========== TABLET (nem változik) ========== */
 @media (min-width: 769px) and (max-width: 1024px) {
   .game-stats-row {
     order: initial !important;
   }
 }
+

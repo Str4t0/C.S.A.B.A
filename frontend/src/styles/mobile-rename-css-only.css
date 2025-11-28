@@ -1,0 +1,147 @@
+/* ============================================
+   MENÜ NEVEK MAGYARRA - CSAK CSS!
+   ============================================ */
+
+/* Items → Tárgyak */
+.game-sidebar-item:nth-child(1)::after {
+  content: 'Tárgyak';
+}
+
+.game-sidebar-item:nth-child(1) {
+  font-size: 0; /* Eredeti szöveg elrejtése */
+}
+
+.game-sidebar-item:nth-child(1)::after {
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* Alerts → Értesítések */
+.game-sidebar-item:nth-child(2)::after {
+  content: 'Értesítések';
+}
+
+.game-sidebar-item:nth-child(2) {
+  font-size: 0;
+}
+
+.game-sidebar-item:nth-child(2)::after {
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* Statistics → Statisztikák (ez már magyar) */
+/* QR Scanner → QR Scanner (ez marad) */
+
+/* Settings → Beállítások */
+.game-sidebar-item:nth-child(5)::after {
+  content: 'Beállítások';
+}
+
+.game-sidebar-item:nth-child(5) {
+  font-size: 0;
+}
+
+.game-sidebar-item:nth-child(5)::after {
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* Emoji ikonok megjelenítése */
+.game-sidebar-item::before {
+  font-size: 20px !important;
+  margin-right: 8px;
+}
+
+/* ============================================
+   MOBIL OPTIMALIZÁLÁS
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Sidebar felülre */
+  .game-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .game-sidebar {
+    width: 100% !important;
+    min-width: 100% !important;
+    padding: 12px !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Menu felirat kisebb */
+  .game-sidebar-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  /* Menü vízszintes scroll */
+  .game-sidebar-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5px;
+  }
+
+  .game-sidebar-menu::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .game-sidebar-menu::-webkit-scrollbar-thumb {
+    background: var(--game-gold);
+    border-radius: 2px;
+  }
+
+  /* Menü item mobil */
+  .game-sidebar-item {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-width: 110px !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  /* Ha font-size: 0 miatt elrejtve volt */
+  .game-sidebar-item {
+    font-size: 0 !important;
+  }
+
+  .game-sidebar-item::after {
+    font-size: 13px !important;
+  }
+
+  /* Doboz illusztráció rejtése */
+  .game-sidebar > div[style*="marginTop"] {
+    display: none !important;
+  }
+
+  /* Content teljes szélesség */
+  .game-content {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+  }
+
+  /* Stats kisebb mobilon */
+  .game-stats-row {
+    gap: 8px;
+  }
+
+  .game-stat-badge {
+    padding: 15px 12px;
+  }
+
+  .game-stat-badge h3 {
+    font-size: 20px;
+  }
+
+  .game-stat-badge p {
+    font-size: 12px;
+  }
+}

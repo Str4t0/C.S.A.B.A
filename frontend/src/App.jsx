@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { itemsAPI, categoriesAPI, statsAPI } from './services/api';
 import ItemCard from './components/ItemCard';
 import ItemForm from './components/ItemForm';
@@ -11,8 +12,10 @@ import './styles/main.css';
 import Alerts from './components/Alerts';
 import Statistics from './components/Statistics';
 import QRScanner from './components/QRScanner';
+import Settings from './components/Settings';
 
 function App() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState({});
@@ -128,26 +131,62 @@ function App() {
   // Szűrt items
   const displayedItems = items;
 
-  return (
+  const homeContent = (
     <div className="app-container">
       {/* Header */}
       <header className="header">
         <div className="header-content">
           <h1>🏠 Otthoni Tárgyi Nyilvántartás</h1>
           <div className="header-stats">
-            <div className="stat-item">
+            {/* JAVÍTVA: Klikkelhetős stat kártyák + auto scroll */}
+            <div 
+              className="stat-item clickable" 
+              onClick={() => {
+                navigate('/');
+                setTimeout(() => {
+                  const mainContent = document.querySelector('.main-content');
+                  if (mainContent) {
+                    mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              }}
+              style={{ cursor: 'pointer' }}
+              title="Ugrás a tárgyak listájához"
+            >
               <div className="stat-value">{stats.total_items || 0}</div>
               <div className="stat-label">Tárgy</div>
             </div>
-            <div className="stat-item">
-              <div className="stat-value">{stats.total_categories || 0}</div>
-              <div className="stat-label">Kategória</div>
-            </div>
-            <div className="stat-item">
+            <div 
+              className="stat-item clickable" 
+              onClick={() => {
+                navigate('/statistics');
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
+              }}
+              style={{ cursor: 'pointer' }}
+              title="Ugrás a statisztikákhoz"
+            >
               <div className="stat-value">
                 {stats.total_value ? `${(stats.total_value / 1000).toFixed(0)}k` : '0'}
               </div>
               <div className="stat-label">Érték (Ft)</div>
+            </div>
+            <div 
+              className="stat-item clickable" 
+              onClick={() => {
+                navigate('/alerts');
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
+              }}
+              style={{ cursor: 'pointer' }}
+              title="Ugrás az értesítésekhez"
+            >
+              <div className="stat-value">
+                {stats.low_stock_count || 0}
+              </div>
+              <div className="stat-label">Alacsony készlet</div>
             </div>
           </div>
         </div>
@@ -243,6 +282,26 @@ function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  return (
+    <div className="app-shell">
+      <nav className="main-nav">
+        <Link to="/">🏠 Főoldal</Link>
+        <Link to="/alerts">🔔 Értesítések</Link>
+        <Link to="/statistics">📊 Statisztikák</Link>
+        <Link to="/qr-scanner">📷 QR Beolvasó</Link>
+        <Link to="/settings">⚙️ Beállítások</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={homeContent} />
+        <Route path="/alerts" element={<Alerts />} />
+        <Route path="/statistics" element={<Statistics />} />
+        <Route path="/qr-scanner" element={<QRScanner />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
     </div>
   );
 }

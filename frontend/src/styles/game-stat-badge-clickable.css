@@ -1,0 +1,118 @@
+/* ============================================
+   GAME UI - KLIKKELHETŐS STAT BADGE-EK
+   ============================================ */
+
+/* Add hozzá az inventory-game-ui.css fájlodhoz */
+
+.game-stat-badge.clickable {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.game-stat-badge.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.game-stat-badge.clickable:hover::before {
+  opacity: 1;
+}
+
+.game-stat-badge.clickable:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 4px var(--game-gold),
+    inset 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.game-stat-badge.clickable:hover .game-stat-icon {
+  transform: scale(1.2) rotate(5deg);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.game-stat-badge.clickable:hover h3 {
+  color: var(--game-gold);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.game-stat-badge.clickable:active {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--game-gold);
+}
+
+/* Mobilon tap feedback */
+@media (hover: none) {
+  .game-stat-badge.clickable:active {
+    transform: scale(0.95);
+  }
+  
+  .game-stat-badge.clickable:active::before {
+    opacity: 1;
+  }
+}
+
+/* Animált tooltip game style */
+.game-stat-badge.clickable::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--game-brown);
+  color: var(--game-cream);
+  padding: 8px 12px;
+  border-radius: var(--radius-small);
+  font-family: var(--font-text);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: var(--border-thin) solid var(--game-gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.game-stat-badge.clickable:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Kis nyíl a tooltip-hoz */
+.game-stat-badge.clickable:hover::after {
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 -4px 0 0 var(--game-gold) inset;
+}
+
+/* Pulsing effect egérrel rámutatáskor */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.2),
+      0 0 0 2px var(--game-gold);
+  }
+  50% {
+    box-shadow: 
+      0 12px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 4px var(--game-gold),
+      0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.game-stat-badge.clickable:hover {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

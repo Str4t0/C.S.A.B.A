@@ -1,0 +1,63 @@
+/* ============================================
+   KLIKKELHETŐS STAT KÁRTYÁK - CSS KIEGÉSZÍTÉS
+   ============================================ */
+
+/* Add hozzá a main.css fájlodhoz vagy készíts új CSS fájlt */
+
+.stat-item.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stat-item.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.stat-item.clickable:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover effekt a stat-value-ra */
+.stat-item.clickable:hover .stat-value {
+  color: white;
+  font-weight: 700;
+}
+
+/* Hover effekt a stat-label-re */
+.stat-item.clickable:hover .stat-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Mobilon tap feedback */
+@media (hover: none) {
+  .stat-item.clickable:active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+}
+
+/* Tooltip-szerű hint */
+.stat-item.clickable::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.stat-item.clickable:hover::after {
+  opacity: 1;
+}

@@ -155,29 +155,43 @@ const FileUpload = ({ onImageUploaded, currentImage }) => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
+            {/* JAVÍTVA: Hidden input + label mobilbarát megoldás */}
             <input 
               type="file" 
+              id="file-upload-input"
               accept="image/jpeg,image/jpg,image/png,image/webp"
               capture="environment"
               onChange={handleFileChange}
               disabled={uploading}
+              style={{ display: 'none' }}
             />
             
-            <div className="upload-icon">
-              {uploading ? '⏳' : '📸'}
-            </div>
-            
-            <p>
-              {uploading 
-                ? 'Feltöltés folyamatban...' 
-                : 'Kattints ide - Fotó vagy galéria'}
-            </p>
-            <small style={{ color: 'var(--text-secondary)' }}>
-              Mobil: kamera vagy galéria | PC: fájl vagy drag & drop
-            </small>
-            <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '5px' }}>
-              JPG, PNG vagy WebP (max 10MB)
-            </small>
+            <label 
+              htmlFor="file-upload-input"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                cursor: uploading ? 'not-allowed' : 'pointer',
+                textAlign: 'center'
+              }}
+            >
+              <div className="upload-icon">
+                {uploading ? '⏳' : '📸'}
+              </div>
+              
+              <p>
+                {uploading 
+                  ? 'Feltöltés folyamatban...' 
+                  : 'Kattints ide - Fotó vagy galéria'}
+              </p>
+              <small style={{ color: 'var(--text-secondary)' }}>
+                Mobil: kamera vagy galéria | PC: fájl vagy drag & drop
+              </small>
+              <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '5px' }}>
+                JPG, PNG vagy WebP (max 10MB)
+              </small>
+            </label>
           </div>
 
           {/* Kamera gomb csak HTTPS vagy localhost esetén */}
