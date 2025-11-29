@@ -9,3 +9,4 @@ python-multipart==0.0.6
 aiofiles==23.2.1
 python-dotenv==1.0.0
 qrcode[pil]==7.4.2
+pytest==8.4.2

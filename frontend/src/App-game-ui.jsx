@@ -376,7 +376,7 @@ function AppGameUI() {
               </div>
             </div>
             <div className="game-item-list-right">
-              <button 
+              <button
                 className="game-btn game-btn-small game-btn-primary"
                 onClick={handleLocationManagement}
               >
@@ -385,57 +385,16 @@ function AppGameUI() {
             </div>
           </div>
 
-          <div className="game-item-list-row">
+          <div className="game-item-list-row disabled-card">
             <div className="game-item-list-left">
-              <div className="game-item-list-icon">🔔</div>
+              <div className="game-item-list-icon">ℹ️</div>
               <div className="game-item-list-info">
-                <h3>Értesítések</h3>
-                <p>Alacsony készlet értesítések beállítása</p>
+                <h3>Nem elérhető menüpontok</h3>
+                <p>Az Értesítések, Statisztikák és QR olvasó ideiglenesen el lettek rejtve.</p>
               </div>
             </div>
             <div className="game-item-list-right">
-              <button
-                className="game-btn game-btn-small game-btn-primary"
-                onClick={() => navigate('/alerts')}
-              >
-                Megnyitás
-              </button>
-            </div>
-          </div>
-
-          <div className="game-item-list-row">
-            <div className="game-item-list-left">
-              <div className="game-item-list-icon">📊</div>
-              <div className="game-item-list-info">
-                <h3>Statisztikák</h3>
-                <p>Részletes statisztikák és riportok</p>
-              </div>
-            </div>
-            <div className="game-item-list-right">
-              <button
-                className="game-btn game-btn-small game-btn-primary"
-                onClick={() => navigate('/statistics')}
-              >
-                Megtekintés
-              </button>
-            </div>
-          </div>
-
-          <div className="game-item-list-row">
-            <div className="game-item-list-left">
-              <div className="game-item-list-icon">📷</div>
-              <div className="game-item-list-info">
-                <h3>QR Beolvasó</h3>
-                <p>QR kódok gyors keresése és megnyitása</p>
-              </div>
-            </div>
-            <div className="game-item-list-right">
-              <button
-                className="game-btn game-btn-small game-btn-primary"
-                onClick={() => navigate('/qr-scanner')}
-              >
-                Megnyitás
-              </button>
+              <span className="game-chip">Inaktív</span>
             </div>
           </div>
         </div>
