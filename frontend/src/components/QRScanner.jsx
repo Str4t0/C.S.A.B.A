@@ -22,12 +22,22 @@ const QRScanner = () => {
   }, []);
 
   const startScanner = async () => {
+    if (scanning) return;
+
     try {
       setError(null);
       setScanning(true);
 
+      // Várjunk egy render ciklust, hogy a #qr-reader elem biztosan létezzen
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const readerElement = document.getElementById('qr-reader');
+      if (!readerElement) {
+        throw new Error('A kamera előnézeti elem nem található');
+      }
+
       // Initialize scanner
-      const html5QrCode = new Html5Qrcode("qr-reader");
+      const html5QrCode = new Html5Qrcode(readerElement);
       html5QrCodeRef.current = html5QrCode;
 
       const config = {
@@ -41,15 +51,15 @@ const QRScanner = () => {
         config,
         async (decodedText) => {
           console.log('✅ QR kód beolvasva:', decodedText);
-          
+
           // Stop scanner
           await stopScanner();
-          
+
           // Lookup item
           await lookupItem(decodedText);
         },
-        (errorMessage) => {
-          // Scanning error - ez folyamatos, ne logold
+        () => {
+          // Scanning errors are noisy, ne logoljuk
         }
       );
 
@@ -69,6 +79,7 @@ const QRScanner = () => {
         if (state === 2) { // SCANNING
           await html5QrCodeRef.current.stop();
         }
+        html5QrCodeRef.current.clear();
         html5QrCodeRef.current = null;
       }
       setScanning(false);

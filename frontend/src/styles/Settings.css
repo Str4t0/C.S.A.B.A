@@ -50,6 +50,16 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
+.disabled-card {
+  cursor: default;
+  background: #f9fafb;
+}
+
+.disabled-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .setting-icon {
   width: 48px;
   height: 48px;
