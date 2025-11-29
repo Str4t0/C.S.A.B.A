@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Adatbázis inicializálás
 logger.info("Adatbázis táblák létrehozása...")
-models.Base.metadata.create_all(bind=engine)
+init_db()
 logger.info("✅ Adatbázis inicializálva")
 
 # FastAPI app inicializálás
@@ -39,9 +39,15 @@ app = FastAPI(
 )
 
 # CORS middleware - engedélyezi a frontend hozzáférést
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://192.168.50.75:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Production-ban konkrét origin-eket adj meg!
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

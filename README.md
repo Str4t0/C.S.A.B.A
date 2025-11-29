@@ -100,6 +100,15 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 START-BACKEND-SIMPLE.bat
 ```
 
+### Tesztelés
+
+```bash
+cd backend
+pytest
+```
+
+> Tipp: a `backend/tests/test_image_handler.py` unit teszt lokálisan fut és nem igényel futó backend szervert, így gyorsan ellenőrzi, hogy a kép-feldolgozás működik-e.
+
 ### Frontend
 
 ```bash
