@@ -360,7 +360,7 @@ function AppGameUI() {
               </div>
             </div>
             <div className="game-item-list-right">
-              <button 
+              <button
                 className="game-btn game-btn-small game-btn-primary"
                 onClick={handleUserManagement}
               >
@@ -384,19 +384,6 @@ function AppGameUI() {
               >
                 🔧 Kezelés
               </button>
-            </div>
-          </div>
-
-          <div className="game-item-list-row disabled-card">
-            <div className="game-item-list-left">
-              <div className="game-item-list-icon">ℹ️</div>
-              <div className="game-item-list-info">
-                <h3>Nem elérhető menüpontok</h3>
-                <p>Az Értesítések, Statisztikák és QR olvasó ideiglenesen el lettek rejtve.</p>
-              </div>
-            </div>
-            <div className="game-item-list-right">
-              <span className="game-chip">Inaktív</span>
             </div>
           </div>
         </div>

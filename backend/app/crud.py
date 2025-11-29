@@ -10,6 +10,30 @@ from . import models, schemas
 from typing import List, Optional
 
 
+def _normalize_images(images):
+    """Fogadjon el dict vagy Pydantic objektumot és adja vissza egységes dict listaként."""
+
+    normalized = []
+    if not images:
+        return normalized
+
+    for image in images:
+        if isinstance(image, dict):
+            filename = image.get("filename")
+            orientation = image.get("orientation")
+        else:
+            filename = getattr(image, "filename", None)
+            orientation = getattr(image, "orientation", None)
+
+        if filename:
+            normalized.append({
+                "filename": filename,
+                "orientation": orientation
+            })
+
+    return normalized
+
+
 # ============= ITEMS CRUD =============
 
 def get_items(db: Session, skip: int = 0, limit: int = 100) -> List[models.Item]:
@@ -81,15 +105,15 @@ def create_item(db: Session, item: schemas.ItemCreate) -> models.Item:
         item_data["quantity"] = 1
     
     # Hozd létre az item-et
-    images = item_data.pop("images", []) or []
+    images = _normalize_images(item_data.pop("images", []))
 
     db_item = models.Item(**item_data)
 
     for image in images:
         db_item.images.append(
             models.ItemImage(
-                filename=image.filename,
-                orientation=image.orientation
+                filename=image["filename"],
+                orientation=image.get("orientation")
             )
         )
 
@@ -116,7 +140,7 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
         if update_data["quantity"] is None or update_data["quantity"] < 1:
             update_data["quantity"] = 1
     
-    images = update_data.pop("images", None)
+    images = _normalize_images(update_data.pop("images", None)) if "images" in update_data else None
 
     for field, value in update_data.items():
         setattr(db_item, field, value)
@@ -126,8 +150,8 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
         for image in images:
             db_item.images.append(
                 models.ItemImage(
-                    filename=image.filename,
-                    orientation=image.orientation
+                    filename=image["filename"],
+                    orientation=image.get("orientation")
                 )
             )
 
