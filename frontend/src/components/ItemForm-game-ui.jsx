@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import FileUpload from './FileUpload';
+import MultiImageUpload from './MultiImageUpload';
 import DocumentUploadGameUI from './DocumentUpload-game-ui';
 import DocumentListGameUI from './DocumentList-game-ui';
 import UserSelector from './UserSelector';
@@ -40,6 +40,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
   const [qrCode, setQrCode] = useState(null);
   const [qrGenerating, setQrGenerating] = useState(null);
   const [documentRefreshKey, setDocumentRefreshKey] = useState(0);
+  const [gallery, setGallery] = useState([]);
 
   useEffect(() => {
     if (item) {
@@ -60,6 +61,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
 
       // QR kód betöltése ha van
       setQrCode(item.qr_code || null);
+      setGallery(item.images || (item.image_filename ? [{ filename: item.image_filename, orientation: null }] : []));
     } else {
       setFormData({
         name: '',
@@ -76,6 +78,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
         qr_code: null
       });
       setQrCode(null);
+      setGallery([]);
     }
 
     // reset dirty flag when switching items or opening a fresh form
@@ -91,10 +94,12 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
     onDirtyChange?.(true);
   };
 
-  const handleImageUploaded = (filename) => {
+  const handleGalleryChange = (images) => {
+    setGallery(images || []);
+    // Az első kép marad fő képnek is a visszafele kompatibilitás miatt
     setFormData(prev => ({
       ...prev,
-      image_filename: filename
+      image_filename: images?.[0]?.filename || null
     }));
     onDirtyChange?.(true);
   };
@@ -132,7 +137,11 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
       user_id: normalizeNumber(formData.user_id),
       location_id: normalizeNumber(formData.location_id),
       notes: formData.notes?.trim() || null,
-      image_filename: formData.image_filename || null
+      image_filename: formData.image_filename || null,
+      images: gallery?.map(img => ({
+        filename: img.filename,
+        orientation: img.orientation
+      })) || []
     };
 
     onDirtyChange?.(false);
@@ -504,10 +513,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
             marginBottom: '15px',
             paddingBottom: '10px',
             borderBottom: 'var(--border-thin) solid var(--game-brown)'
-          }}>📸 Kép</h3>
-          <FileUpload 
-            onImageUploaded={handleImageUploaded}
-            currentImage={formData.image_filename}
+          }}>📸 Képek</h3>
+          <MultiImageUpload
+            initialImages={gallery}
+            onChange={handleGalleryChange}
           />
         </div>
 
