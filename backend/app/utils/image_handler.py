@@ -108,8 +108,19 @@ async def save_uploaded_file(file: UploadFile) -> Dict:
 
             logger.info("   Feldolgozás...")
 
+            orientation = None
+            original_size = (0, 0)
+
             try:
                 with Image.open(temp_path) as img:
+                    original_size = img.size
+                    if img.width > img.height:
+                        orientation = "landscape"
+                    elif img.height > img.width:
+                        orientation = "portrait"
+                    else:
+                        orientation = "square"
+
                     if img.mode in ('RGBA', 'LA', 'P'):
                         rgb_img = Image.new('RGB', img.size, (255, 255, 255))
                         if img.mode == 'P':
@@ -138,9 +149,9 @@ async def save_uploaded_file(file: UploadFile) -> Dict:
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
-            return os.path.getsize(file_path)
+            return os.path.getsize(file_path), orientation, original_size
 
-        final_size = await asyncio.to_thread(_process_image)
+        final_size, orientation, original_size = await asyncio.to_thread(_process_image)
 
         logger.info(f"✅ Kép feltöltve: {new_filename} ({final_size / 1024:.1f} KB)")
 
@@ -149,7 +160,10 @@ async def save_uploaded_file(file: UploadFile) -> Dict:
             "original_filename": file.filename,
             "size": final_size,
             "content_type": "image/jpeg",
-            "url": f"/uploads/{new_filename}"
+            "url": f"/uploads/{new_filename}",
+            "orientation": orientation,
+            "width": original_size[0],
+            "height": original_size[1]
         }
 
     except ValueError as e:

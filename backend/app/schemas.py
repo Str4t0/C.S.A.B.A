@@ -5,11 +5,30 @@ JAVÍTVA: quantity és min_quantity mezők hozzáadva
 """
 
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import date, datetime
 
 
 # ============= ITEM SCHEMAS =============
+
+
+class ItemImageBase(BaseModel):
+    """Kép adatok tárgyhoz."""
+
+    filename: str
+    orientation: Optional[str] = None  # portrait | landscape | square
+
+
+class ItemImageCreate(ItemImageBase):
+    pass
+
+
+class ItemImageResponse(ItemImageBase):
+    id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ItemBase(BaseModel):
     """Item alap séma"""
@@ -20,6 +39,7 @@ class ItemBase(BaseModel):
     purchase_date: Optional[date] = None
     notes: Optional[str] = None
     image_filename: Optional[str] = None
+    images: Optional[List[ItemImageCreate]] = []
     user_id: Optional[int] = None
     location_id: Optional[int] = None
     quantity: int = Field(default=1, ge=1)  # JAVÍTVA: kötelező, min 1
@@ -40,6 +60,7 @@ class ItemUpdate(BaseModel):
     purchase_date: Optional[date] = None
     notes: Optional[str] = None
     image_filename: Optional[str] = None
+    images: Optional[List[ItemImageCreate]] = None
     user_id: Optional[int] = None
     location_id: Optional[int] = None
     quantity: Optional[int] = Field(None, ge=1)  # JAVÍTVA
@@ -52,7 +73,8 @@ class ItemResponse(ItemBase):
     created_at: datetime
     updated_at: datetime
     qr_code: Optional[str] = None
-    
+    images: List[ItemImageResponse] = []
+
     model_config = ConfigDict(from_attributes=True)
 
 
