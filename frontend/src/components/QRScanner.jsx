@@ -29,7 +29,7 @@ const QRScanner = () => {
       setScanning(true);
 
       // Várjunk egy render ciklust, hogy a #qr-reader elem biztosan létezzen
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
 
       const readerElement = document.getElementById('qr-reader');
       if (!readerElement) {
@@ -37,7 +37,7 @@ const QRScanner = () => {
       }
 
       // Initialize scanner
-      const html5QrCode = new Html5Qrcode(readerElement);
+      const html5QrCode = new Html5Qrcode('qr-reader');
       html5QrCodeRef.current = html5QrCode;
 
       const config = {

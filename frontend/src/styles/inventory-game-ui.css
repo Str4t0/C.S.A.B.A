@@ -603,6 +603,18 @@ body {
   box-shadow: 0 3px 0px rgba(58, 40, 23, 0.3);
 }
 
+.game-item-list-row.disabled-card {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f6efe5;
+  border-style: dashed;
+}
+
+.game-item-list-row.disabled-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .game-item-list-left {
   display: flex;
   align-items: center;
@@ -633,6 +645,15 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+.game-chip {
+  background: var(--game-cream);
+  border: 2px solid var(--game-brown);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--font-game);
+  color: var(--game-brown);
 }
 
 /* ========== FOOTER ACTIONS ========== */
