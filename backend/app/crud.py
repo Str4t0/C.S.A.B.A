@@ -19,18 +19,22 @@ def _normalize_images(images):
 
     for image in images:
         filename = None
+        original_filename = None
         orientation = None
 
         if isinstance(image, dict):
             filename = image.get("filename") or image.get("image_filename")
+            original_filename = image.get("original_filename") or image.get("originalFilename")
             orientation = image.get("orientation")
         else:
             filename = getattr(image, "filename", None) or getattr(image, "image_filename", None)
+            original_filename = getattr(image, "original_filename", None) or getattr(image, "originalFilename", None)
             orientation = getattr(image, "orientation", None)
 
         if filename:
             normalized.append({
                 "filename": filename,
+                "original_filename": original_filename,
                 "orientation": orientation
             })
 
@@ -116,6 +120,7 @@ def create_item(db: Session, item: schemas.ItemCreate) -> models.Item:
         db_item.images.append(
             models.ItemImage(
                 filename=image["filename"],
+                original_filename=image.get("original_filename") or image["filename"],
                 orientation=image.get("orientation")
             )
         )
@@ -159,6 +164,7 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
             db_item.images.append(
                 models.ItemImage(
                     filename=image["filename"],
+                    original_filename=image.get("original_filename") or image["filename"],
                     orientation=image.get("orientation")
                 )
             )

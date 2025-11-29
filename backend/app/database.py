@@ -51,5 +51,7 @@ def init_db():
         # create_all hozza létre a megfelelő sémát. Csak meglévő táblán futtatunk ALTER-t.
         if columns and "orientation" not in columns:
             conn.execute(text("ALTER TABLE item_images ADD COLUMN orientation VARCHAR(20)"))
+        if columns and "original_filename" not in columns:
+            conn.execute(text("ALTER TABLE item_images ADD COLUMN original_filename VARCHAR(300)"))
 
     Base.metadata.create_all(bind=engine)

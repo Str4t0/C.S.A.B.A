@@ -52,6 +52,7 @@ const MultiImageUpload = ({ initialImages = [], onChange }) => {
     const response = await imagesAPI.upload(file);
     return {
       filename: response.filename,
+      original_filename: response.original_filename || file.name,
       orientation: response.orientation || null,
       width: response.width,
       height: response.height,

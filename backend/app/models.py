@@ -148,6 +148,7 @@ class ItemImage(Base):
     id = Column(Integer, primary_key=True, index=True)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     filename = Column(String(300), nullable=False)
+    original_filename = Column(String(300), nullable=False)
     orientation = Column(String(20), nullable=True)  # portrait, landscape, square
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

@@ -16,6 +16,7 @@ class ItemImageBase(BaseModel):
     """Kép adatok tárgyhoz."""
 
     filename: str
+    original_filename: Optional[str] = None
     orientation: Optional[str] = None  # portrait | landscape | square
 
 
