@@ -149,13 +149,15 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
         setattr(db_item, field, value)
 
     if images is not None:
-        # Töröljük a régi képeket, hogy elkerüljük az ütköző primer kulcsokat
-        db.query(models.ItemImage).filter(models.ItemImage.item_id == item_id).delete()
+        # Kapcsolaton keresztül töröljük a meglévő képeket, így a session sem tartja
+        # meg a régi objektumokat. Ez megakadályozza, hogy az SQLite autoincrement
+        # az előző primer kulcsokra fusson rá bulk delete után.
+        db_item.images.clear()
+        db.flush()
 
         for image in images:
-            db.add(
+            db_item.images.append(
                 models.ItemImage(
-                    item_id=item_id,
                     filename=image["filename"],
                     orientation=image.get("orientation")
                 )
