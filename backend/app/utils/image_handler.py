@@ -6,10 +6,12 @@ Backend Developer: Maria Rodriguez
 import os
 import uuid
 import shutil
+import logging
+from typing import Dict
+
 from PIL import Image
 from fastapi import UploadFile
-from typing import Dict
-import logging
+from fastapi.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +74,82 @@ def validate_image_file(file: UploadFile) -> None:
         raise ValueError(f"Nem támogatott fájl kiterjesztés: {ext}. Engedélyezett: {', '.join(ALLOWED_EXTENSIONS)}")
 
 
+def _process_image_upload(file: UploadFile, content: bytes) -> Dict:
+    """
+    A blokkoló képfeldolgozási lépések szinkron futtatása.
+
+    Args:
+        file: A feltöltött fájl objektum.
+        content: A fájl tartalma bájtokban.
+
+    Returns:
+        Dict: Fájl információk (filename, url, size, etc.)
+    """
+    # Egyedi fájlnév
+    new_filename = generate_unique_filename(file.filename)
+    file_path = get_image_path(new_filename)
+
+    # Mentés ideiglenes fájlba
+    temp_path = f"{file_path}.tmp"
+
+    logger.info(f"   Mentés: {temp_path}")
+
+    # Mentés temp fájlba
+    with open(temp_path, "wb") as f:
+        f.write(content)
+
+    logger.info(f"   Feldolgozás...")
+
+    try:
+        with Image.open(temp_path) as img:
+            # RGB konverzió ha szükséges
+            if img.mode in ('RGBA', 'LA', 'P'):
+                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = rgb_img
+
+            # Méret optimalizálás
+            if img.width > MAX_DIMENSION or img.height > MAX_DIMENSION:
+                img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.Resampling.LANCZOS)
+                logger.info(f"   Átméretezve: {img.size}")
+
+            # Mentés végleges helyre
+            img.save(file_path, 'JPEG', quality=85, optimize=True)
+            logger.info(f"   ✅ Kép mentve: {file_path}")
+
+            # Thumbnail készítése
+            img.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
+            thumb_path = get_thumbnail_path(new_filename)
+            img.save(thumb_path, 'JPEG', quality=80)
+            logger.info(f"   ✅ Thumbnail mentve: {thumb_path}")
+
+    except Exception as e:
+        logger.error(f"   ❌ PIL hiba: {e}")
+        # Ha PIL nem tudja feldolgozni, másold simán
+        shutil.copy(temp_path, file_path)
+        logger.warning(f"   ⚠️  Kép feldolgozás kihagyva, eredeti mentve")
+
+    finally:
+        # Temp fájl törlése
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+    # Végső fájl méret
+    final_size = os.path.getsize(file_path)
+
+    logger.info(f"✅ Kép feltöltve: {new_filename} ({final_size / 1024:.1f} KB)")
+
+    return {
+        "filename": new_filename,
+        "original_filename": file.filename,
+        "size": final_size,
+        "content_type": "image/jpeg",
+        "url": f"/uploads/{new_filename}"
+    }
+
+
 async def save_uploaded_file(file: UploadFile) -> Dict:
     """
     Feltöltött kép mentése és feldolgozása
@@ -91,15 +169,6 @@ async def save_uploaded_file(file: UploadFile) -> Dict:
         # Validáció
         validate_image_file(file)
         
-        # Egyedi fájlnév
-        new_filename = generate_unique_filename(file.filename)
-        file_path = get_image_path(new_filename)
-        
-        # Mentés ideiglenes fájlba
-        temp_path = f"{file_path}.tmp"
-        
-        logger.info(f"   Mentés: {temp_path}")
-        
         # Fájl tartalom olvasása
         content = await file.read()
         file_size = len(content)
@@ -108,61 +177,8 @@ async def save_uploaded_file(file: UploadFile) -> Dict:
         if file_size > MAX_IMAGE_SIZE:
             raise ValueError(f"A fájl túl nagy! Maximum {MAX_IMAGE_SIZE / 1024 / 1024:.1f}MB méretű lehet. Jelenlegi: {file_size / 1024 / 1024:.1f}MB")
         
-        # Mentés temp fájlba
-        with open(temp_path, "wb") as f:
-            f.write(content)
-        
-        logger.info(f"   Feldolgozás...")
-        
-        # Kép feldolgozás PIL-lel
-        try:
-            with Image.open(temp_path) as img:
-                # RGB konverzió ha szükséges
-                if img.mode in ('RGBA', 'LA', 'P'):
-                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                    if img.mode == 'P':
-                        img = img.convert('RGBA')
-                    rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
-                    img = rgb_img
-                
-                # Méret optimalizálás
-                if img.width > MAX_DIMENSION or img.height > MAX_DIMENSION:
-                    img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.Resampling.LANCZOS)
-                    logger.info(f"   Átméretezve: {img.size}")
-                
-                # Mentés végleges helyre
-                img.save(file_path, 'JPEG', quality=85, optimize=True)
-                logger.info(f"   ✅ Kép mentve: {file_path}")
-                
-                # Thumbnail készítése
-                img.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
-                thumb_path = get_thumbnail_path(new_filename)
-                img.save(thumb_path, 'JPEG', quality=80)
-                logger.info(f"   ✅ Thumbnail mentve: {thumb_path}")
-        
-        except Exception as e:
-            logger.error(f"   ❌ PIL hiba: {e}")
-            # Ha PIL nem tudja feldolgozni, másold simán
-            shutil.copy(temp_path, file_path)
-            logger.warning(f"   ⚠️  Kép feldolgozás kihagyva, eredeti mentve")
-        
-        finally:
-            # Temp fájl törlése
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-        
-        # Végső fájl méret
-        final_size = os.path.getsize(file_path)
-        
-        logger.info(f"✅ Kép feltöltve: {new_filename} ({final_size / 1024:.1f} KB)")
-        
-        return {
-            "filename": new_filename,
-            "original_filename": file.filename,
-            "size": final_size,
-            "content_type": "image/jpeg",
-            "url": f"/uploads/{new_filename}"
-        }
+        # Feldolgozás futtatása külön szálon, hogy ne blokkolja az event loopot
+        return await run_in_threadpool(_process_image_upload, file, content)
     
     except ValueError as e:
         logger.error(f"❌ Validációs hiba: {e}")
