@@ -15,15 +15,7 @@ const Settings = () => {
         <Link to="/" className="settings-home-link">← Vissza a főoldalra</Link>
       </div>
 
-      <div className="settings-grid">
-        <div className="setting-card disabled-card">
-          <div className="setting-icon">ℹ️</div>
-          <div className="setting-content">
-            <h3>Jelenleg nincs elérhető beállítás</h3>
-            <p>A menüpontok közül eltávolítottuk az Értesítések, Statisztika és QR olvasó elemeket.</p>
-          </div>
-        </div>
-      </div>
+      <p className="settings-empty">Jelenleg nincs konfigurálható beállítás ezen a nézeten.</p>
     </div>
   );
 };

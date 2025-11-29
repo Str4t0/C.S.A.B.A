@@ -13,6 +13,7 @@ const QRScanner = () => {
   const [error, setError] = useState(null);
   const scannerRef = useRef(null);
   const html5QrCodeRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -26,6 +27,19 @@ const QRScanner = () => {
 
     try {
       setError(null);
+
+      // Ellenőrizzük, hogy a böngésző támogatja-e a kamera streamet
+      let cameras;
+      try {
+        cameras = await Html5Qrcode.getCameras();
+      } catch (cameraError) {
+        throw new Error('A böngésző nem támogatja a kamera streamet. Engedélyezd a HTTPS-t vagy válaszd a képfeltöltéses beolvasást.');
+      }
+
+      if (!cameras || cameras.length === 0) {
+        throw new Error('Nem található elérhető kamera eszköz.');
+      }
+
       setScanning(true);
 
       // Várjunk egy render ciklust, hogy a #qr-reader elem biztosan létezzen
@@ -46,8 +60,10 @@ const QRScanner = () => {
         aspectRatio: 1.0
       };
 
+      const preferredCameraId = cameras.find((cam) => cam.label?.toLowerCase().includes('back'))?.id || cameras[0].id;
+
       await html5QrCode.start(
-        { facingMode: "environment" }, // Hátsó kamera
+        { deviceId: { exact: preferredCameraId } },
         config,
         async (decodedText) => {
           console.log('✅ QR kód beolvasva:', decodedText);
@@ -66,9 +82,12 @@ const QRScanner = () => {
       toast.success('Kamera indítva! Tartsd a QR kódot a keretbe.');
     } catch (err) {
       console.error('❌ Kamera indítási hiba:', err);
-      setError('Nem sikerült elindítani a kamerát. Engedélyezd a kamera hozzáférést!');
+      const message = err?.message?.includes('nem támogatja a kamera streamet')
+        ? 'A böngésző nem támogatja a kamera streamet. Használj HTTPS-t vagy olvass be egy mentett QR-képet.'
+        : err?.message || 'Nem sikerült elindítani a kamerát.';
+      setError(message);
       setScanning(false);
-      toast.error('Kamera hozzáférés megtagadva');
+      toast.error('Kamera indítása sikertelen');
     }
   };
 
@@ -123,6 +142,45 @@ const QRScanner = () => {
     startScanner();
   };
 
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileScan = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setError(null);
+      setScanning(true);
+
+      // A reader elemre a fájlos beolvasáshoz is szükség van
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const readerElement = document.getElementById('qr-reader');
+      if (!readerElement) {
+        throw new Error('A beolvasó felület nem található');
+      }
+
+      if (!html5QrCodeRef.current) {
+        html5QrCodeRef.current = new Html5Qrcode('qr-reader');
+      }
+
+      const result = html5QrCodeRef.current.scanFileV2
+        ? await html5QrCodeRef.current.scanFileV2(file, true)
+        : await html5QrCodeRef.current.scanFile(file, true);
+
+      setScanning(false);
+      await lookupItem(result.decodedText || result);
+    } catch (err) {
+      console.error('Kép beolvasási hiba:', err);
+      setError('Nem sikerült beolvasni a képet. Próbáld újra másik képpel.');
+      toast.error('Kép beolvasása sikertelen');
+      setScanning(false);
+    } finally {
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="qr-scanner-container">
       {/* Header */}
@@ -144,6 +202,16 @@ const QRScanner = () => {
               <Camera size={20} />
               Kamera indítása
             </button>
+            <button onClick={triggerFileSelect} className="start-btn secondary-btn">
+              📁 QR kód kép feltöltése
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileScan}
+            />
           </div>
         )}
 

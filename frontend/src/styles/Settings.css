@@ -33,6 +33,14 @@
   gap: 16px;
 }
 
+.settings-empty {
+  color: #6b7280;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 16px;
+}
+
 .setting-card {
   display: flex;
   align-items: center;
