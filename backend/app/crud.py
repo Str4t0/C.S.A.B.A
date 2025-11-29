@@ -81,12 +81,22 @@ def create_item(db: Session, item: schemas.ItemCreate) -> models.Item:
         item_data["quantity"] = 1
     
     # Hozd létre az item-et
+    images = item_data.pop("images", []) or []
+
     db_item = models.Item(**item_data)
-    
+
+    for image in images:
+        db_item.images.append(
+            models.ItemImage(
+                filename=image.filename,
+                orientation=image.orientation
+            )
+        )
+
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    
+
     return db_item
 
 
@@ -106,9 +116,21 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
         if update_data["quantity"] is None or update_data["quantity"] < 1:
             update_data["quantity"] = 1
     
+    images = update_data.pop("images", None)
+
     for field, value in update_data.items():
         setattr(db_item, field, value)
-    
+
+    if images is not None:
+        db_item.images.clear()
+        for image in images:
+            db_item.images.append(
+                models.ItemImage(
+                    filename=image.filename,
+                    orientation=image.orientation
+                )
+            )
+
     db.commit()
     db.refresh(db_item)
     

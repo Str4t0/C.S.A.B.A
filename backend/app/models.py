@@ -95,6 +95,7 @@ class Item(Base):
     user = relationship("User", back_populates="items")
     location = relationship("Location", back_populates="items")
     documents = relationship("Document", back_populates="item", cascade="all, delete-orphan")
+    images = relationship("ItemImage", back_populates="item", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Item(id={self.id}, name='{self.name}', quantity={self.quantity})>"
@@ -137,3 +138,20 @@ class Document(Base):
 
     def __repr__(self):
         return f"<Document(id={self.id}, filename='{self.filename}')>"
+
+
+class ItemImage(Base):
+    """Több kép támogatása a tárgyakhoz."""
+
+    __tablename__ = "item_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
+    filename = Column(String(300), nullable=False)
+    orientation = Column(String(20), nullable=True)  # portrait, landscape, square
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    item = relationship("Item", back_populates="images")
+
+    def __repr__(self):
+        return f"<ItemImage(id={self.id}, filename='{self.filename}', orientation='{self.orientation}')>"
