@@ -61,6 +61,85 @@
   --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Több képes feltöltés és előnézet */
+.file-upload-area.multi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.multi-image-help {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.multi-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.multi-image-thumb {
+  background: var(--game-cream-light);
+  border: var(--border-thin) solid var(--game-brown);
+  border-radius: var(--radius-small);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.multi-image-thumb img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  border-radius: var(--radius-small);
+  background: white;
+}
+
+.multi-image-thumb.portrait img {
+  height: 150px;
+}
+
+.multi-image-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--game-brown);
+}
+
+.multi-image-meta button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--game-red);
+}
+
+.preview-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.preview-image-card {
+  background: var(--game-cream-light);
+  border: var(--border-thin) solid var(--game-brown);
+  border-radius: var(--radius-medium);
+  padding: 10px;
+}
+
+.preview-image-card img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: var(--radius-small);
+  background: white;
+}
+
 /* ========== GLOBÁLIS STÍLUSOK ========== */
 * {
   margin: 0;
@@ -603,6 +682,18 @@ body {
   box-shadow: 0 3px 0px rgba(58, 40, 23, 0.3);
 }
 
+.game-item-list-row.disabled-card {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f6efe5;
+  border-style: dashed;
+}
+
+.game-item-list-row.disabled-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .game-item-list-left {
   display: flex;
   align-items: center;
@@ -633,6 +724,15 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+.game-chip {
+  background: var(--game-cream);
+  border: 2px solid var(--game-brown);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--font-game);
+  color: var(--game-brown);
 }
 
 /* ========== FOOTER ACTIONS ========== */
@@ -957,4 +1057,14 @@ body {
   .game-stats-row {
     order: initial !important;
   }
+}
+
+/* ========== Több kép és tájolás ========== */
+.item-card .item-image.portrait img {
+  object-fit: contain;
+  max-height: 180px;
+}
+
+.item-card .item-image.landscape img {
+  object-fit: contain;
 }

@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { itemsAPI, categoriesAPI, statsAPI, usersAPI, locationsAPI } from './services/api';
+import { itemsAPI, categoriesAPI, statsAPI, usersAPI, locationsAPI, imagesAPI } from './services/api';
 import ItemCard from './components/ItemCard';
 import ItemFormGameUI from './components/ItemForm-game-ui';
 import Alerts from './components/Alerts';
@@ -32,6 +32,7 @@ function AppGameUI() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formDirty, setFormDirty] = useState(false);
+  const [previewItem, setPreviewItem] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -329,6 +330,7 @@ function AppGameUI() {
             item={item}
             onEdit={handleEditItem}
             onDelete={handleDeleteItem}
+            onPreview={setPreviewItem}
           />
         ))}
       </div>
@@ -376,7 +378,7 @@ function AppGameUI() {
               </div>
             </div>
             <div className="game-item-list-right">
-              <button 
+              <button
                 className="game-btn game-btn-small game-btn-primary"
                 onClick={handleLocationManagement}
               >
@@ -385,57 +387,16 @@ function AppGameUI() {
             </div>
           </div>
 
-          <div className="game-item-list-row">
+          <div className="game-item-list-row disabled-card">
             <div className="game-item-list-left">
-              <div className="game-item-list-icon">🔔</div>
+              <div className="game-item-list-icon">ℹ️</div>
               <div className="game-item-list-info">
-                <h3>Értesítések</h3>
-                <p>Alacsony készlet értesítések beállítása</p>
+                <h3>Nem elérhető menüpontok</h3>
+                <p>Az Értesítések, Statisztikák és QR olvasó ideiglenesen el lettek rejtve.</p>
               </div>
             </div>
             <div className="game-item-list-right">
-              <button
-                className="game-btn game-btn-small game-btn-primary"
-                onClick={() => navigate('/alerts')}
-              >
-                Megnyitás
-              </button>
-            </div>
-          </div>
-
-          <div className="game-item-list-row">
-            <div className="game-item-list-left">
-              <div className="game-item-list-icon">📊</div>
-              <div className="game-item-list-info">
-                <h3>Statisztikák</h3>
-                <p>Részletes statisztikák és riportok</p>
-              </div>
-            </div>
-            <div className="game-item-list-right">
-              <button
-                className="game-btn game-btn-small game-btn-primary"
-                onClick={() => navigate('/statistics')}
-              >
-                Megtekintés
-              </button>
-            </div>
-          </div>
-
-          <div className="game-item-list-row">
-            <div className="game-item-list-left">
-              <div className="game-item-list-icon">📷</div>
-              <div className="game-item-list-info">
-                <h3>QR Beolvasó</h3>
-                <p>QR kódok gyors keresése és megnyitása</p>
-              </div>
-            </div>
-            <div className="game-item-list-right">
-              <button
-                className="game-btn game-btn-small game-btn-primary"
-                onClick={() => navigate('/qr-scanner')}
-              >
-                Megnyitás
-              </button>
+              <span className="game-chip">Inaktív</span>
             </div>
           </div>
         </div>
@@ -609,6 +570,52 @@ function AppGameUI() {
           </Routes>
         </div>
       </div>
+
+      {/* Item Preview Modal */}
+      {previewItem && (
+        <div className="game-modal-overlay" onClick={() => setPreviewItem(null)}>
+          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '960px' }}>
+            <div className="game-modal-header">
+              <span>👁️ Előnézet</span>
+              <div className="game-modal-close" onClick={() => setPreviewItem(null)}>✕</div>
+            </div>
+            <div style={{ padding: '20px', display: 'grid', gap: '16px' }}>
+              <div className="preview-gallery">
+                {(previewItem.images && previewItem.images.length > 0
+                  ? previewItem.images
+                  : (previewItem.image_filename ? [{ filename: previewItem.image_filename }] : [])
+                ).map((img) => (
+                  <div key={img.filename} className="preview-image-card">
+                    <img src={imagesAPI.getImageUrl(img.filename)} alt={previewItem.name} />
+                    <div style={{ marginTop: '6px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      {img.orientation === 'portrait' ? 'Álló' : img.orientation === 'landscape' ? 'Fekvő' : 'Kép'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="game-item-meta">
+                <div className="game-item-meta-row"><span className="game-item-meta-label">🏷️ Név:</span><span className="game-item-meta-value">{previewItem.name}</span></div>
+                <div className="game-item-meta-row"><span className="game-item-meta-label">📂 Kategória:</span><span className="game-item-meta-value">{previewItem.category}</span></div>
+                {previewItem.purchase_price && (
+                  <div className="game-item-meta-row"><span className="game-item-meta-label">💰 Ár:</span><span className="game-item-meta-value">{previewItem.purchase_price.toLocaleString()} Ft</span></div>
+                )}
+                {previewItem.location?.full_path && (
+                  <div className="game-item-meta-row"><span className="game-item-meta-label">📍 Hely:</span><span className="game-item-meta-value">{previewItem.location.full_path}</span></div>
+                )}
+                {previewItem.description && (
+                  <div className="game-item-meta-row"><span className="game-item-meta-label">📝 Leírás:</span><span className="game-item-meta-value">{previewItem.description}</span></div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button className="game-btn" onClick={() => { setPreviewItem(null); handleEditItem(previewItem); }}>✏️ Szerkesztés</button>
+                <button className="game-btn game-btn-secondary" onClick={() => setPreviewItem(null)}>Bezár</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Item Modal */}
       {showModal && (
