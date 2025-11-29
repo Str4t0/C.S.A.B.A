@@ -39,7 +39,7 @@ const ItemCard = ({ item, onEdit, onDelete, onPreview }) => {
   const orientationClass = item.images?.[0]?.orientation || 'square';
 
   return (
-    <div className="item-card" onClick={() => onPreview?.(item)} style={{ cursor: onPreview ? 'pointer' : 'default' }}>
+    <div className="item-card" onClick={() => onPreview?.(item, 0)} style={{ cursor: onPreview ? 'pointer' : 'default' }}>
       <div className={`item-image ${orientationClass}`}>
         {mainImage ? (
           <img
@@ -90,7 +90,7 @@ const ItemCard = ({ item, onEdit, onDelete, onPreview }) => {
             {onPreview && (
               <button
                 className="icon-btn"
-                onClick={(e) => { e.stopPropagation(); onPreview(item); }}
+                onClick={(e) => { e.stopPropagation(); onPreview(item, 0); }}
                 title="Előnézet"
               >
                 👁️

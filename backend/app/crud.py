@@ -18,11 +18,14 @@ def _normalize_images(images):
         return normalized
 
     for image in images:
+        filename = None
+        orientation = None
+
         if isinstance(image, dict):
-            filename = image.get("filename")
+            filename = image.get("filename") or image.get("image_filename")
             orientation = image.get("orientation")
         else:
-            filename = getattr(image, "filename", None)
+            filename = getattr(image, "filename", None) or getattr(image, "image_filename", None)
             orientation = getattr(image, "orientation", None)
 
         if filename:
@@ -146,10 +149,13 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
         setattr(db_item, field, value)
 
     if images is not None:
-        db_item.images.clear()
+        # Töröljük a régi képeket, hogy elkerüljük az ütköző primer kulcsokat
+        db.query(models.ItemImage).filter(models.ItemImage.item_id == item_id).delete()
+
         for image in images:
-            db_item.images.append(
+            db.add(
                 models.ItemImage(
+                    item_id=item_id,
                     filename=image["filename"],
                     orientation=image.get("orientation")
                 )

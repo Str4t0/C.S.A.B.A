@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { itemsAPI, categoriesAPI, statsAPI, usersAPI, locationsAPI, imagesAPI } from './services/api';
+import { itemsAPI, categoriesAPI, statsAPI, usersAPI, locationsAPI, imagesAPI, documentsAPI } from './services/api';
 import ItemCard from './components/ItemCard';
 import ItemFormGameUI from './components/ItemForm-game-ui';
 import Alerts from './components/Alerts';
@@ -33,6 +33,7 @@ function AppGameUI() {
   const [editingItem, setEditingItem] = useState(null);
   const [formDirty, setFormDirty] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
+  const [previewIndex, setPreviewIndex] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -330,7 +331,10 @@ function AppGameUI() {
             item={item}
             onEdit={handleEditItem}
             onDelete={handleDeleteItem}
-            onPreview={setPreviewItem}
+            onPreview={(chosen, startIndex = 0) => {
+              setPreviewIndex(startIndex);
+              setPreviewItem(chosen);
+            }}
           />
         ))}
       </div>
@@ -560,40 +564,88 @@ function AppGameUI() {
 
       {/* Item Preview Modal */}
       {previewItem && (
-        <div className="game-modal-overlay" onClick={() => setPreviewItem(null)}>
-          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '960px' }}>
+        <div className="game-modal-overlay" onClick={() => { setPreviewItem(null); setPreviewIndex(0); }}>
+          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '980px' }}>
             <div className="game-modal-header">
               <span>👁️ Előnézet</span>
-              <div className="game-modal-close" onClick={() => setPreviewItem(null)}>✕</div>
+              <div className="game-modal-close" onClick={() => { setPreviewItem(null); setPreviewIndex(0); }}>✕</div>
             </div>
             <div style={{ padding: '20px', display: 'grid', gap: '16px' }}>
-              <div className="preview-gallery">
-                {(previewItem.images && previewItem.images.length > 0
+              {(() => {
+                const gallery = (previewItem.images && previewItem.images.length > 0
                   ? previewItem.images
-                  : (previewItem.image_filename ? [{ filename: previewItem.image_filename }] : [])
-                ).map((img) => (
-                  <div key={img.filename} className="preview-image-card">
-                    <img src={imagesAPI.getImageUrl(img.filename)} alt={previewItem.name} />
-                    <div style={{ marginTop: '6px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                      {img.orientation === 'portrait' ? 'Álló' : img.orientation === 'landscape' ? 'Fekvő' : 'Kép'}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  : (previewItem.image_filename ? [{ filename: previewItem.image_filename, orientation: null }] : [])
+                );
+                const active = gallery[previewIndex] || gallery[0];
 
-              <div className="game-item-meta">
-                <div className="game-item-meta-row"><span className="game-item-meta-label">🏷️ Név:</span><span className="game-item-meta-value">{previewItem.name}</span></div>
-                <div className="game-item-meta-row"><span className="game-item-meta-label">📂 Kategória:</span><span className="game-item-meta-value">{previewItem.category}</span></div>
-                {previewItem.purchase_price && (
-                  <div className="game-item-meta-row"><span className="game-item-meta-label">💰 Ár:</span><span className="game-item-meta-value">{previewItem.purchase_price.toLocaleString()} Ft</span></div>
-                )}
-                {previewItem.location?.full_path && (
-                  <div className="game-item-meta-row"><span className="game-item-meta-label">📍 Hely:</span><span className="game-item-meta-value">{previewItem.location.full_path}</span></div>
-                )}
-                {previewItem.description && (
-                  <div className="game-item-meta-row"><span className="game-item-meta-label">📝 Leírás:</span><span className="game-item-meta-value">{previewItem.description}</span></div>
-                )}
-              </div>
+                return (
+                  <>
+                    <div className="preview-gallery-main">
+                      {active ? (
+                        <div className={`preview-main-frame ${active.orientation || 'square'}`} onClick={() => setPreviewIndex((previewIndex + 1) % gallery.length)}>
+                          <img src={imagesAPI.getImageUrl(active.filename)} alt={previewItem.name} />
+                          {gallery.length > 1 && (
+                            <div className="preview-nav">
+                              <button onClick={(e) => { e.stopPropagation(); setPreviewIndex((previewIndex - 1 + gallery.length) % gallery.length); }}>◀</button>
+                              <span>{previewIndex + 1} / {gallery.length}</span>
+                              <button onClick={(e) => { e.stopPropagation(); setPreviewIndex((previewIndex + 1) % gallery.length); }}>▶</button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="preview-main-frame empty">Nincs kép</div>
+                      )}
+                      {gallery.length > 1 && (
+                        <div className="preview-thumbs">
+                          {gallery.map((img, idx) => (
+                            <button
+                              key={img.filename}
+                              className={`preview-thumb ${idx === previewIndex ? 'active' : ''}`}
+                              onClick={() => setPreviewIndex(idx)}
+                            >
+                              <img src={imagesAPI.getThumbnailUrl(img.filename)} alt={previewItem.name} />
+                              <small>{img.orientation === 'portrait' ? 'Álló' : img.orientation === 'landscape' ? 'Fekvő' : 'Kép'}</small>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="game-item-meta">
+                      <div className="game-item-meta-row"><span className="game-item-meta-label">🏷️ Név:</span><span className="game-item-meta-value">{previewItem.name}</span></div>
+                      <div className="game-item-meta-row"><span className="game-item-meta-label">📂 Kategória:</span><span className="game-item-meta-value">{previewItem.category}</span></div>
+                      {previewItem.purchase_price && (
+                        <div className="game-item-meta-row"><span className="game-item-meta-label">💰 Ár:</span><span className="game-item-meta-value">{previewItem.purchase_price.toLocaleString()} Ft</span></div>
+                      )}
+                      {previewItem.location?.full_path && (
+                        <div className="game-item-meta-row"><span className="game-item-meta-label">📍 Hely:</span><span className="game-item-meta-value">{previewItem.location.full_path}</span></div>
+                      )}
+                      {previewItem.description && (
+                        <div className="game-item-meta-row"><span className="game-item-meta-label">📝 Leírás:</span><span className="game-item-meta-value">{previewItem.description}</span></div>
+                      )}
+                    </div>
+
+                    {previewItem.documents?.length > 0 && (
+                      <div className="preview-documents">
+                        <h4>📄 Dokumentumok</h4>
+                        <div className="preview-doc-list">
+                          {previewItem.documents.map(doc => (
+                            <a
+                              key={doc.id}
+                              className="preview-doc-item"
+                              href={documentsAPI.getDownloadUrl(doc.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              📎 {doc.original_filename || doc.filename}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button className="game-btn" onClick={() => { setPreviewItem(null); handleEditItem(previewItem); }}>✏️ Szerkesztés</button>

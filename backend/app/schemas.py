@@ -74,6 +74,7 @@ class ItemResponse(ItemBase):
     updated_at: datetime
     qr_code: Optional[str] = None
     images: List[ItemImageResponse] = []
+    documents: List["DocumentResponse"] = []
 
     model_config = ConfigDict(from_attributes=True)
 
