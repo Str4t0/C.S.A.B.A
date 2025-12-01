@@ -477,6 +477,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
               setFormData(prev => ({ ...prev, user_id: userId }));
               onDirtyChange?.(true);
             }}
+            showCreateNew={false}
           />
         </div>
 
@@ -501,6 +502,7 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
               setFormData(prev => ({ ...prev, location_id: locationId }));
               onDirtyChange?.(true);
             }}
+            showCreateNew={false}
           />
         </div>
 
@@ -520,43 +522,59 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
             borderBottom: 'var(--border-thin) solid var(--game-brown)'
           }}>💰 Vásárlási adatok</h3>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {/* Vásárlási ár */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
               <label style={{
-                display: 'block',
-                marginBottom: '5px',
                 fontWeight: '600',
                 color: 'var(--game-brown)',
-                fontFamily: 'var(--font-text)'
-              }}>Vásárlási ár</label>
+                fontFamily: 'var(--font-text)',
+                fontSize: '14px'
+              }}>💵 Vásárlási ár (Ft)</label>
               <input
                 type="number"
                 name="purchase_price"
                 className="game-search-input"
                 value={formData.purchase_price}
                 onChange={handleChange}
-                placeholder="0"
-                step="0.01"
+                placeholder="pl. 25000"
+                step="1"
                 min="0"
-                style={{ marginBottom: 0 }}
+                style={{ 
+                  marginBottom: 0,
+                  padding: '12px 15px',
+                  fontSize: '16px'
+                }}
               />
             </div>
 
-            <div>
+            {/* Vásárlás dátuma */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
               <label style={{
-                display: 'block',
-                marginBottom: '5px',
                 fontWeight: '600',
                 color: 'var(--game-brown)',
-                fontFamily: 'var(--font-text)'
-              }}>Vásárlás dátuma</label>
+                fontFamily: 'var(--font-text)',
+                fontSize: '14px'
+              }}>📅 Vásárlás dátuma</label>
               <input
                 type="date"
                 name="purchase_date"
                 className="game-search-input"
                 value={formData.purchase_date}
                 onChange={handleChange}
-                style={{ marginBottom: 0 }}
+                style={{ 
+                  marginBottom: 0,
+                  padding: '12px 15px',
+                  fontSize: '16px'
+                }}
               />
             </div>
           </div>

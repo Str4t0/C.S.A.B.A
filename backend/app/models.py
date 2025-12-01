@@ -18,8 +18,10 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
-    display_name = Column(String(200), nullable=False)
+    first_name = Column(String(100), nullable=False)  # Keresztnév
+    last_name = Column(String(100), nullable=False)   # Családnév
     email = Column(String(200), unique=True, nullable=True)
+    phone = Column(String(50), nullable=True)         # Telefonszám
     avatar_color = Column(String(20), default="#3498db")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -27,38 +29,56 @@ class User(Base):
     # Kapcsolat item-ekhez
     items = relationship("Item", back_populates="user", cascade="all, delete-orphan")
 
+    @property
+    def display_name(self):
+        """Teljes név (Családnév Keresztnév)"""
+        return f"{self.last_name} {self.first_name}"
+
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
 
 
 class Location(Base):
     """
-    Helyszín/Cím model - hierarchikus struktúra
+    Helyszín/Cím model - lakcím adatokkal
     """
     __tablename__ = "locations"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(200), nullable=False)
-    description = Column(Text, nullable=True)
-    parent_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
+    country = Column(String(100), nullable=False, default="Magyarország")  # Ország
+    postal_code = Column(String(20), nullable=True)   # Irányítószám
+    city = Column(String(100), nullable=False)        # Helység/Város
+    address = Column(String(300), nullable=True)      # Lakcím/Utca
+    description = Column(Text, nullable=True)         # Egyéb leírás
     icon = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Hierarchikus kapcsolat
-    parent = relationship("Location", remote_side=[id], backref="children")
     
     # Kapcsolat item-ekhez
     items = relationship("Item", back_populates="location")
 
-    def __repr__(self):
-        return f"<Location(id={self.id}, name='{self.name}')>"
+    @property
+    def name(self):
+        """Rövid megnevezés"""
+        if self.address:
+            return f"{self.city}, {self.address}"
+        return self.city
     
     @property
     def full_path(self):
-        """Teljes elérési út (pl: Lakás > Nappali > Polc)"""
-        if self.parent:
-            return f"{self.parent.full_path} > {self.name}"
-        return self.name
+        """Teljes cím"""
+        parts = []
+        if self.country:
+            parts.append(self.country)
+        if self.postal_code:
+            parts.append(self.postal_code)
+        if self.city:
+            parts.append(self.city)
+        if self.address:
+            parts.append(self.address)
+        return ", ".join(parts) if parts else "Ismeretlen helyszín"
+
+    def __repr__(self):
+        return f"<Location(id={self.id}, city='{self.city}')>"
 
 
 class Item(Base):

@@ -17,8 +17,10 @@ const UserSelector = ({ selectedUserId, onUserChange, showCreateNew = true }) =>
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
-    display_name: '',
+    first_name: '',
+    last_name: '',
     email: '',
+    phone: '',
     avatar_color: AVATAR_COLORS[0]
   });
 
@@ -41,28 +43,31 @@ const UserSelector = ({ selectedUserId, onUserChange, showCreateNew = true }) =>
 
   const handleSubmit = async () => {
     try {
-      await usersAPI.create(formData);  // JAVÍTVA: usersAPI használata
+      await usersAPI.create(formData);
       setShowForm(false);
       setFormData({
         username: '',
-        display_name: '',
+        first_name: '',
+        last_name: '',
         email: '',
+        phone: '',
         avatar_color: AVATAR_COLORS[0]
       });
       loadUsers();
     } catch (error) {
       console.error('User létrehozási hiba:', error);
-      alert('Hiba történt a felhasználó létrehozása során!');
+      alert('Hiba: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   const getInitials = (name) => {
+    if (!name) return '?';
     return name
       .split(' ')
-      .map(n => n[0])
+      .map(n => n?.[0] || '')
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || '?';
   };
 
   if (loading) {

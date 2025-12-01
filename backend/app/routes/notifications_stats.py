@@ -81,7 +81,39 @@ async def get_notifications(db: Session = Depends(get_db)):
                 "created_at": datetime.now().isoformat()
             })
         
-        # 4. Régen vásárolt tárgyak (1+ év)
+        # 4. Felhasználó nélküli tárgyak
+        items_without_user = db.query(models.Item).filter(
+            models.Item.user_id == None
+        ).all()
+        
+        if len(items_without_user) > 0:
+            notifications.append({
+                "id": "no_user",
+                "type": "NO_USER",
+                "severity": "info",
+                "title": "👤 Felhasználó nélküli tárgyak",
+                "message": f"{len(items_without_user)} tárgynak nincs tulajdonosa",
+                "count": len(items_without_user),
+                "created_at": datetime.now().isoformat()
+            })
+        
+        # 5. QR kód nélküli tárgyak
+        items_without_qr = db.query(models.Item).filter(
+            models.Item.qr_code == None
+        ).all()
+        
+        if len(items_without_qr) > 0:
+            notifications.append({
+                "id": "no_qr",
+                "type": "NO_QR",
+                "severity": "info",
+                "title": "📱 QR kód nélküli tárgyak",
+                "message": f"{len(items_without_qr)} tárgynak nincs QR kódja",
+                "count": len(items_without_qr),
+                "created_at": datetime.now().isoformat()
+            })
+        
+        # 6. Régen vásárolt tárgyak (1+ év)
         one_year_ago = datetime.now().date() - timedelta(days=365)
         old_items = db.query(models.Item).filter(
             models.Item.purchase_date != None,
@@ -136,6 +168,14 @@ async def get_notification_items(notification_type: str, db: Session = Depends(g
         elif notification_type == "NO_LOCATION":
             db_items = db.query(models.Item).filter(
                 models.Item.location_id == None
+            ).all()
+        elif notification_type == "NO_USER":
+            db_items = db.query(models.Item).filter(
+                models.Item.user_id == None
+            ).all()
+        elif notification_type == "NO_QR":
+            db_items = db.query(models.Item).filter(
+                models.Item.qr_code == None
             ).all()
         elif notification_type == "OLD_PURCHASE":
             one_year_ago = datetime.now().date() - timedelta(days=365)

@@ -1,21 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, Package, DollarSign, AlertTriangle, Image as ImageIcon,
   TrendingUp, Users, MapPin, Calendar
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import api from '../services/api';
+import api, { itemsAPI } from '../services/api';
+import { useUI } from '../contexts/UIContext';
+import ItemPreviewGameUI from './ItemPreview-game-ui';
+import ItemPreviewRetro from './ItemPreview-retro';
 import '../styles/Statistics.css';
 
 const Statistics = () => {
-  const navigate = useNavigate();
+  const { isGameUI } = useUI();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [previewItem, setPreviewItem] = useState(null);
+  const [allItems, setAllItems] = useState([]);
 
   useEffect(() => {
     loadStats();
+    loadAllItems();
   }, []);
+  
+  const loadAllItems = async () => {
+    try {
+      const data = await itemsAPI.getAll();
+      setAllItems(data || []);
+    } catch (error) {
+      console.error('Items betöltési hiba:', error);
+    }
+  };
+  
+  const handleItemClick = async (itemId) => {
+    const item = allItems.find(i => i.id === itemId);
+    if (item) {
+      setPreviewItem(item);
+    } else {
+      try {
+        const data = await itemsAPI.getById(itemId);
+        setPreviewItem(data);
+      } catch (error) {
+        toast.error('Tárgy nem található');
+      }
+    }
+  };
 
   const loadStats = async () => {
     try {
@@ -163,14 +191,7 @@ const Statistics = () => {
                 <div 
                   key={item.id} 
                   className="top-item-card clickable"
-                  onClick={() => {
-                    console.log('📊 Top item kattintás: item_id =', item.id);
-                    navigate('/', { 
-                      state: { previewItemId: item.id },
-                      replace: false
-                    });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
+                  onClick={() => handleItemClick(item.id)}
                   style={{ cursor: 'pointer' }}
                   title="Kattints a tárgy megtekintéséhez"
                 >
@@ -294,6 +315,29 @@ const Statistics = () => {
           )}
         </div>
       </div>
+      
+      {/* Tárgy előnézet modal - UI-nak megfelelő */}
+      {previewItem && isGameUI && (
+        <ItemPreviewGameUI
+          item={previewItem}
+          onClose={() => setPreviewItem(null)}
+          onEdit={() => {
+            setPreviewItem(null);
+            window.location.href = `/?edit=${previewItem.id}`;
+          }}
+        />
+      )}
+      
+      {previewItem && !isGameUI && (
+        <ItemPreviewRetro
+          item={previewItem}
+          onClose={() => setPreviewItem(null)}
+          onEdit={() => {
+            setPreviewItem(null);
+            window.location.href = `/?edit=${previewItem.id}`;
+          }}
+        />
+      )}
     </div>
   );
 };

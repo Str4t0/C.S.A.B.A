@@ -208,6 +208,26 @@ export const usersAPI = {
     }
   },
 
+  update: async (id, userData) => {
+    try {
+      const response = await api.put(`/users/${id}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error('User update error:', error);
+      throw error;
+    }
+  },
+
+  delete: async (id) => {
+    try {
+      const response = await api.delete(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('User delete error:', error);
+      throw error;
+    }
+  },
+
   getUserStats: async (userId) => {
     try {
       const response = await api.get(`/users/${userId}/stats`);
@@ -248,6 +268,26 @@ export const locationsAPI = {
       return response.data;
     } catch (error) {
       console.error('Location create error:', error);
+      throw error;
+    }
+  },
+
+  update: async (id, locationData) => {
+    try {
+      const response = await api.put(`/locations/${id}`, locationData);
+      return response.data;
+    } catch (error) {
+      console.error('Location update error:', error);
+      throw error;
+    }
+  },
+
+  delete: async (id) => {
+    try {
+      const response = await api.delete(`/locations/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Location delete error:', error);
       throw error;
     }
   }

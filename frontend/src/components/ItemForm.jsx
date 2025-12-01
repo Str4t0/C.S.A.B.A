@@ -259,6 +259,7 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
           <UserSelector
             selectedUserId={formData.user_id}
             onUserChange={(userId) => setFormData(prev => ({ ...prev, user_id: userId }))}
+            showCreateNew={false}
           />
         </div>
 
@@ -268,6 +269,7 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
           <LocationSelector
             selectedLocationId={formData.location_id}
             onLocationChange={(locationId) => setFormData(prev => ({ ...prev, location_id: locationId }))}
+            showCreateNew={false}
           />
         </div>
 

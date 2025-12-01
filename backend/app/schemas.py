@@ -106,8 +106,10 @@ class CategoryResponse(CategoryBase):
 class UserBase(BaseModel):
     """User alap séma"""
     username: str = Field(..., min_length=3, max_length=100)
-    display_name: str = Field(..., min_length=1, max_length=200)
+    first_name: str = Field(..., min_length=1, max_length=100)  # Keresztnév
+    last_name: str = Field(..., min_length=1, max_length=100)   # Családnév
     email: Optional[str] = Field(None, max_length=200)
+    phone: Optional[str] = Field(None, max_length=50)           # Telefonszám
     avatar_color: str = Field(default="#3498db", max_length=20)
 
 
@@ -118,8 +120,10 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     """User frissítése"""
-    display_name: Optional[str] = Field(None, min_length=1, max_length=200)
+    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[str] = Field(None, max_length=200)
+    phone: Optional[str] = Field(None, max_length=50)
     avatar_color: Optional[str] = Field(None, max_length=20)
     is_active: Optional[bool] = None
 
@@ -127,6 +131,7 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     """User válasz"""
     id: int
+    display_name: str  # Computed property
     is_active: bool
     created_at: datetime
     
@@ -137,9 +142,11 @@ class UserResponse(UserBase):
 
 class LocationBase(BaseModel):
     """Helyszín alap séma"""
-    name: str = Field(..., min_length=1, max_length=200)
+    country: str = Field(default="Magyarország", max_length=100)  # Ország
+    postal_code: Optional[str] = Field(None, max_length=20)       # Irányítószám
+    city: str = Field(..., min_length=1, max_length=100)          # Helység
+    address: Optional[str] = Field(None, max_length=300)          # Lakcím
     description: Optional[str] = None
-    parent_id: Optional[int] = None
     icon: Optional[str] = Field(None, max_length=50)
 
 
@@ -150,17 +157,20 @@ class LocationCreate(LocationBase):
 
 class LocationUpdate(BaseModel):
     """Helyszín frissítése"""
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    country: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, min_length=1, max_length=100)
+    address: Optional[str] = Field(None, max_length=300)
     description: Optional[str] = None
-    parent_id: Optional[int] = None
     icon: Optional[str] = Field(None, max_length=50)
 
 
 class LocationResponse(LocationBase):
     """Helyszín válasz"""
     id: int
+    name: str       # Computed property (city + address)
+    full_path: str  # Computed property (teljes cím)
     created_at: datetime
-    full_path: str  # Számított property
     
     model_config = ConfigDict(from_attributes=True)
 

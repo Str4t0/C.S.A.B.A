@@ -85,14 +85,10 @@ def get_items_by_user(db: Session, user_id: int) -> List[models.Item]:
     return db.query(models.Item).filter(models.Item.user_id == user_id).all()
 
 
-def get_items_by_location(db: Session, location_id: int, include_children: bool = False) -> List[models.Item]:
+def get_items_by_location(db: Session, location_id: int) -> List[models.Item]:
     """
     Helyszín tárgyai
     """
-    if include_children:
-        # TODO: rekurzív lekérdezés gyerek helyszínekhez
-        pass
-    
     return db.query(models.Item).filter(models.Item.location_id == location_id).all()
 
 
@@ -304,8 +300,10 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     """
     db_user = models.User(
         username=user.username,
-        display_name=user.display_name,
+        first_name=user.first_name,
+        last_name=user.last_name,
         email=user.email,
+        phone=user.phone,
         avatar_color=user.avatar_color
     )
     db.add(db_user)
@@ -322,10 +320,14 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate) -> Optional
     if not db_user:
         return None
     
-    if user.display_name is not None:
-        db_user.display_name = user.display_name
+    if user.first_name is not None:
+        db_user.first_name = user.first_name
+    if user.last_name is not None:
+        db_user.last_name = user.last_name
     if user.email is not None:
         db_user.email = user.email
+    if user.phone is not None:
+        db_user.phone = user.phone
     if user.avatar_color is not None:
         db_user.avatar_color = user.avatar_color
     if user.is_active is not None:
@@ -334,6 +336,19 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate) -> Optional
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def delete_user(db: Session, user_id: int) -> bool:
+    """
+    User törlése
+    """
+    db_user = get_user(db, user_id)
+    if not db_user:
+        return False
+    
+    db.delete(db_user)
+    db.commit()
+    return True
 
 
 # ============= LOCATIONS CRUD =============
@@ -352,28 +367,16 @@ def get_location(db: Session, location_id: int) -> Optional[models.Location]:
     return db.query(models.Location).filter(models.Location.id == location_id).first()
 
 
-def get_root_locations(db: Session) -> List[models.Location]:
-    """
-    Gyökér helyszínek (nincs parent)
-    """
-    return db.query(models.Location).filter(models.Location.parent_id == None).all()
-
-
-def get_child_locations(db: Session, parent_id: int) -> List[models.Location]:
-    """
-    Egy helyszín gyerekei
-    """
-    return db.query(models.Location).filter(models.Location.parent_id == parent_id).all()
-
-
 def create_location(db: Session, location: schemas.LocationCreate) -> models.Location:
     """
     Új helyszín létrehozása
     """
     db_location = models.Location(
-        name=location.name,
+        country=location.country,
+        postal_code=location.postal_code,
+        city=location.city,
+        address=location.address,
         description=location.description,
-        parent_id=location.parent_id,
         icon=location.icon
     )
     db.add(db_location)
@@ -401,17 +404,18 @@ def update_location(db: Session, location_id: int, location: schemas.LocationUpd
 
 def delete_location(db: Session, location_id: int) -> bool:
     """
-    Helyszín törlése
+    Helyszín törlése - a tárgyakból is eltávolítja a helyszínt
     """
     db_location = get_location(db, location_id)
     if not db_location:
         return False
     
-    # Ellenőrizd hogy vannak-e gyerek helyszínek
-    children = get_child_locations(db, location_id)
-    if children:
-        return False  # Nem törölhető ha van gyereke
+    # Először kiszedjük a helyszínt a tárgyakból (location_id = NULL)
+    db.query(models.Item).filter(models.Item.location_id == location_id).update(
+        {"location_id": None}
+    )
     
+    # Töröljük a helyszínt
     db.delete(db_location)
     db.commit()
     return True

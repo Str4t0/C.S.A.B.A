@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Image, MapPin, Calendar, X, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import api from '../services/api';
+import api, { itemsAPI } from '../services/api';
+import { useUI } from '../contexts/UIContext';
+import ItemPreviewGameUI from './ItemPreview-game-ui';
+import ItemPreviewRetro from './ItemPreview-retro';
 import '../styles/Alerts.css';
 
 const Alerts = () => {
-  const navigate = useNavigate();
+  const { isGameUI } = useUI();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all' | 'warning' | 'info'
@@ -16,10 +18,24 @@ const Alerts = () => {
   const [modalItems, setModalItems] = useState([]);
   const [modalTitle, setModalTitle] = useState('');
   const [loadingItems, setLoadingItems] = useState(false);
+  
+  // Tárgy előnézet modal
+  const [previewItem, setPreviewItem] = useState(null);
+  const [allItems, setAllItems] = useState([]);
 
   useEffect(() => {
     loadNotifications();
+    loadAllItems();
   }, []);
+  
+  const loadAllItems = async () => {
+    try {
+      const data = await itemsAPI.getAll();
+      setAllItems(data || []);
+    } catch (error) {
+      console.error('Items betöltési hiba:', error);
+    }
+  };
 
   const loadNotifications = async () => {
     try {
@@ -42,6 +58,10 @@ const Alerts = () => {
         return <Image className="icon info" />;
       case 'NO_LOCATION':
         return <MapPin className="icon info" />;
+      case 'NO_USER':
+        return <span className="icon info" style={{ fontSize: '24px' }}>👤</span>;
+      case 'NO_QR':
+        return <span className="icon info" style={{ fontSize: '24px' }}>📱</span>;
       case 'OLD_PURCHASE':
         return <Calendar className="icon info" />;
       default:
@@ -54,14 +74,21 @@ const Alerts = () => {
   };
 
   const handleNotificationClick = async (notification) => {
-    // Ha van item_id (egyetlen tárgy), navigálj a preview-ra
+    // Ha van item_id (egyetlen tárgy), nyisd meg helyben
     if (notification.item_id) {
       console.log('🔔 Alert kattintás: item_id =', notification.item_id);
-      navigate('/', { 
-        state: { previewItemId: notification.item_id },
-        replace: false
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const item = allItems.find(i => i.id === notification.item_id);
+      if (item) {
+        setPreviewItem(item);
+      } else {
+        // Ha nem találjuk a listában, töltsük be
+        try {
+          const data = await itemsAPI.getById(notification.item_id);
+          setPreviewItem(data);
+        } catch (error) {
+          toast.error('Tárgy nem található');
+        }
+      }
     }
     // Ha több tárgy érintett (count > 0), töltsd be a listát
     else if (notification.count && notification.type) {
@@ -83,13 +110,25 @@ const Alerts = () => {
     }
   };
 
-  const handleItemClick = (itemId) => {
-    setShowItemsModal(false);
-    navigate('/', { 
-      state: { previewItemId: itemId },
-      replace: false
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleItemClick = async (itemId) => {
+    // Nyisd meg a preview-t helyben, ne navigálj el
+    const item = allItems.find(i => i.id === itemId);
+    if (item) {
+      setShowItemsModal(false);
+      setPreviewItem(item);
+    } else {
+      try {
+        const data = await itemsAPI.getById(itemId);
+        setShowItemsModal(false);
+        setPreviewItem(data);
+      } catch (error) {
+        toast.error('Tárgy nem található');
+      }
+    }
+  };
+  
+  const handleClosePreview = () => {
+    setPreviewItem(null);
   };
 
   const filteredNotifications = notifications.filter(n => {
@@ -265,6 +304,29 @@ const Alerts = () => {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Tárgy előnézet modal - UI-nak megfelelő */}
+      {previewItem && isGameUI && (
+        <ItemPreviewGameUI
+          item={previewItem}
+          onClose={handleClosePreview}
+          onEdit={() => {
+            handleClosePreview();
+            window.location.href = `/?edit=${previewItem.id}`;
+          }}
+        />
+      )}
+      
+      {previewItem && !isGameUI && (
+        <ItemPreviewRetro
+          item={previewItem}
+          onClose={handleClosePreview}
+          onEdit={() => {
+            handleClosePreview();
+            window.location.href = `/?edit=${previewItem.id}`;
+          }}
+        />
       )}
     </div>
   );

@@ -1,26 +1,20 @@
 /**
- * LocationSelector - FIXED VERSION
- * Undefined array ellenőrzéssel
+ * LocationSelector - UPDATED VERSION
+ * Új helyszín mezők: country, postal_code, city, address
  */
 
 import React, { useState, useEffect } from 'react';
-import { locationsAPI } from '../services/api';  // JAVÍTVA: locationsAPI import
-
-const LOCATION_ICONS = [
-  '🏠', '🏢', '🏪', '🛋️', '🛏️', '🍳',
-  '🚪', '📦', '🗄️', '🧰', '🎒', '👔',
-  '📚', '🎮', '🔧', '🎨'
-];
+import { locationsAPI } from '../services/api';
 
 const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew = true }) => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    parent_id: null,
-    icon: LOCATION_ICONS[0]
+    country: 'Magyarország',
+    postal_code: '',
+    city: '',
+    address: ''
   });
 
   useEffect(() => {
@@ -30,56 +24,40 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
   const loadLocations = async () => {
     try {
       setLoading(true);
-      const data = await locationsAPI.getAll();  // JAVÍTVA: locationsAPI használata
-      setLocations(data || []); // JAVÍTVA: null check
+      const data = await locationsAPI.getAll();
+      setLocations(data || []);
     } catch (error) {
       console.error('Location betöltési hiba:', error);
-      setLocations([]); // JAVÍTVA: hiba esetén üres array
+      setLocations([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const buildTree = () => {
-    if (!Array.isArray(locations) || locations.length === 0) {
-      return []; // JAVÍTVA: üres array ha nincs locations
-    }
-
-    const tree = [];
-    const roots = locations.filter(loc => !loc.parent_id);
-
-    const addChildren = (parent, level = 0) => {
-      tree.push({ ...parent, level });
-      const children = locations.filter(loc => loc.parent_id === parent.id);
-      children.forEach(child => addChildren(child, level + 1));
-    };
-
-    roots.forEach(root => addChildren(root));
-    return tree;
-  };
-
   const handleSubmit = async () => {
+    if (!formData.city) {
+      alert('A helység megadása kötelező!');
+      return;
+    }
     try {
-      await locationsAPI.create(formData);  // JAVÍTVA: locationsAPI használata
+      await locationsAPI.create(formData);
       setShowForm(false);
       setFormData({
-        name: '',
-        description: '',
-        parent_id: null,
-        icon: LOCATION_ICONS[0]
+        country: 'Magyarország',
+        postal_code: '',
+        city: '',
+        address: ''
       });
       loadLocations();
     } catch (error) {
       console.error('Location létrehozási hiba:', error);
-      alert('Hiba történt a helyszín létrehozása során!');
+      alert('Hiba: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   if (loading) {
     return <div style={{ padding: '20px', textAlign: 'center' }}>Betöltés...</div>;
   }
-
-  const treeLocations = buildTree();
 
   return (
     <div className="location-selector">
@@ -93,18 +71,19 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
           <span className="location-name">Nincs megadva</span>
         </div>
 
-        {/* Location lista - JAVÍTVA: ellenőrizzük hogy van-e */}
-        {treeLocations.length > 0 ? (
-          treeLocations.map(location => (
+        {/* Location lista */}
+        {locations.length > 0 ? (
+          locations.map(location => (
             <div
               key={location.id}
               className={`location-item ${selectedLocationId === location.id ? 'selected' : ''}`}
-              style={{ paddingLeft: `${20 + location.level * 20}px` }}
               onClick={() => onLocationChange(location.id)}
             >
-              {location.level > 0 && <span className="tree-indicator">└─ </span>}
-              <span className="location-icon">{location.icon || '📍'}</span>
-              <span className="location-name">{location.name}</span>
+              <span className="location-icon">📍</span>
+              <div className="location-details">
+                <span className="location-name">{location.city}{location.address && `, ${location.address}`}</span>
+                <span className="location-meta">{location.country} {location.postal_code}</span>
+              </div>
             </div>
           ))
         ) : (
@@ -130,46 +109,33 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
         <div className="location-form">
           <h4>Új helyszín</h4>
           <div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <input
+                type="text"
+                placeholder="Ország"
+                value={formData.country}
+                onChange={(e) => setFormData({...formData, country: e.target.value})}
+              />
+              <input
+                type="text"
+                placeholder="Irányítószám"
+                value={formData.postal_code}
+                onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
+              />
+            </div>
             <input
               type="text"
-              placeholder="Név *"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="Helység (város) *"
+              value={formData.city}
+              onChange={(e) => setFormData({...formData, city: e.target.value})}
               required
             />
-            <textarea
-              placeholder="Leírás (opcionális)"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              rows="3"
+            <input
+              type="text"
+              placeholder="Lakcím (utca, házszám)"
+              value={formData.address}
+              onChange={(e) => setFormData({...formData, address: e.target.value})}
             />
-
-            <select
-              value={formData.parent_id || ''}
-              onChange={(e) => setFormData({...formData, parent_id: e.target.value ? parseInt(e.target.value) : null})}
-            >
-              <option value="">Nincs szülő (gyökér szint)</option>
-              {Array.isArray(locations) && locations.map(loc => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.full_path || loc.name}
-                </option>
-              ))}
-            </select>
-
-            <div className="icon-picker">
-              <label>Ikon:</label>
-              <div className="icon-grid">
-                {LOCATION_ICONS.map(icon => (
-                  <div
-                    key={icon}
-                    className={`icon-option ${formData.icon === icon ? 'selected' : ''}`}
-                    onClick={() => setFormData({...formData, icon})}
-                  >
-                    {icon}
-                  </div>
-                ))}
-              </div>
-            </div>
 
             <div className="form-actions">
               <button type="button" className="btn-primary" onClick={handleSubmit}>Létrehozás</button>
@@ -232,14 +198,19 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
           flex-shrink: 0;
         }
 
-        .location-name {
+        .location-details {
           flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .location-name {
           font-weight: 500;
         }
 
-        .tree-indicator {
-          color: #999;
-          font-family: monospace;
+        .location-meta {
+          font-size: 12px;
+          color: #666;
         }
 
         .location-form {
@@ -255,9 +226,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
           color: #007bff;
         }
 
-        .location-form input,
-        .location-form textarea,
-        .location-form select {
+        .location-form input {
           width: 100%;
           padding: 10px;
           margin-bottom: 10px;
@@ -265,46 +234,7 @@ const LocationSelector = ({ selectedLocationId, onLocationChange, showCreateNew 
           border-radius: 4px;
           font-size: 14px;
           font-family: inherit;
-        }
-
-        .icon-picker {
-          margin: 15px 0;
-        }
-
-        .icon-picker label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 500;
-        }
-
-        .icon-grid {
-          display: grid;
-          grid-template-columns: repeat(8, 1fr);
-          gap: 8px;
-        }
-
-        .icon-option {
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          border: 2px solid #ddd;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .icon-option:hover {
-          transform: scale(1.1);
-          border-color: #007bff;
-        }
-
-        .icon-option.selected {
-          border-color: #007bff;
-          background: #e7f3ff;
-          box-shadow: 0 0 0 2px #007bff;
+          box-sizing: border-box;
         }
 
         .form-actions {

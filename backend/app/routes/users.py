@@ -56,6 +56,22 @@ async def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depe
     return updated_user
 
 
+@router.delete("/{user_id}")
+async def delete_user(user_id: int, db: Session = Depends(get_db)):
+    """
+    Felhasználó törlése
+    """
+    user = crud.get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Felhasználó nem található")
+    
+    result = crud.delete_user(db, user_id)
+    if not result:
+        raise HTTPException(status_code=500, detail="Törlés sikertelen")
+    
+    return {"message": "Felhasználó sikeresen törölve", "id": user_id}
+
+
 @router.get("/{user_id}/items", response_model=List[schemas.ItemResponse])
 async def get_user_items(user_id: int, db: Session = Depends(get_db)):
     """

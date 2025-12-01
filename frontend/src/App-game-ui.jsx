@@ -23,7 +23,8 @@ import './styles/inventory-game-ui.css';
 
 function AppGameUI() {
   // State management - Items
-  const [items, setItems] = useState([]);
+  const [allItems, setAllItems] = useState([]);  // Összes tárgy (szűrés nélkül)
+  const [items, setItems] = useState([]);  // Megjelenített (szűrt) tárgyak
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
@@ -43,8 +44,10 @@ function AppGameUI() {
   const [editingUser, setEditingUser] = useState(null);
   const [newUser, setNewUser] = useState({
     username: '',
-    display_name: '',
-    email: ''
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: ''
   });
 
   // State management - Locations
@@ -52,10 +55,10 @@ function AppGameUI() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [newLocation, setNewLocation] = useState({
-    name: '',
-    description: '',
-    parent_id: null,
-    icon: '📍'
+    country: 'Magyarország',
+    postal_code: '',
+    city: '',
+    address: ''
   });
 
   // Sidebar menü - JAVÍTVA: magyar nevek
@@ -141,7 +144,7 @@ function AppGameUI() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, location.key, items.length, loading]);
 
-  const loadData = async () => {
+  const loadData = async (resetFilters = false) => {
     setLoading(true);
     try {
       const [itemsData, categoriesData, statsData] = await Promise.all([
@@ -149,9 +152,32 @@ function AppGameUI() {
         categoriesAPI.getAll(),
         statsAPI.get()
       ]);
-      setItems(itemsData);
+      setAllItems(itemsData);  // Összes tárgy mentése
       setCategories(categoriesData);
       setStats(statsData);
+      
+      if (resetFilters) {
+        // Szűrők resetálása
+        setSearchQuery('');
+        setSelectedCategory(null);
+        setItems(itemsData);
+      } else {
+        // Szűrők megtartása - újra alkalmazzuk a szűrést
+        let filtered = [...itemsData];
+        if (selectedCategory) {
+          filtered = filtered.filter(item => item.category === selectedCategory);
+        }
+        if (searchQuery && searchQuery.trim()) {
+          const searchLower = searchQuery.toLowerCase().trim();
+          filtered = filtered.filter(item => 
+            item.name?.toLowerCase().includes(searchLower) ||
+            item.description?.toLowerCase().includes(searchLower) ||
+            item.category?.toLowerCase().includes(searchLower) ||
+            item.notes?.toLowerCase().includes(searchLower)
+          );
+        }
+        setItems(filtered);
+      }
     } catch (error) {
       console.error('Adatok betöltési hiba:', error);
       alert('Hiba történt az adatok betöltése során!');
@@ -181,34 +207,43 @@ function AppGameUI() {
   };
 
   // Keresés
-  const handleSearch = async (query) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      try {
-        const results = await itemsAPI.search(query);
-        setItems(results);
-        setSelectedCategory(null);
-      } catch (error) {
-        console.error('Keresési hiba:', error);
-      }
-    } else {
-      loadData();
+  // Szűrés - keresés és kategória EGYÜTT működik
+  const filterItems = (query, category) => {
+    let filtered = [...allItems];
+    
+    // Kategória szűrés
+    if (category) {
+      filtered = filtered.filter(item => item.category === category);
     }
+    
+    // Keresés szűrés (név, leírás, kategória)
+    if (query && query.trim()) {
+      const searchLower = query.toLowerCase().trim();
+      filtered = filtered.filter(item => 
+        item.name?.toLowerCase().includes(searchLower) ||
+        item.description?.toLowerCase().includes(searchLower) ||
+        item.category?.toLowerCase().includes(searchLower) ||
+        item.notes?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    setItems(filtered);
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    filterItems(query, selectedCategory);
   };
 
   // Kategória szűrés
-  const handleCategoryFilter = async (category) => {
+  const handleCategoryFilter = (category) => {
     if (selectedCategory === category) {
+      // Ha ugyanarra kattintunk, töröljük a szűrést
       setSelectedCategory(null);
-      loadData();
+      filterItems(searchQuery, null);
     } else {
       setSelectedCategory(category);
-      try {
-        const results = await itemsAPI.getAll(category);
-        setItems(results);
-      } catch (error) {
-        console.error('Szűrési hiba:', error);
-      }
+      filterItems(searchQuery, category);
     }
   };
 
@@ -309,11 +344,11 @@ function AppGameUI() {
     try {
       await usersAPI.create(newUser);
       await loadUsers();
-      setNewUser({ username: '', display_name: '', email: '' });
+      setNewUser({ username: '', first_name: '', last_name: '', email: '', phone: '' });
       alert('✅ Felhasználó hozzáadva!');
     } catch (error) {
       console.error('User létrehozási hiba:', error);
-      alert('Hiba történt a felhasználó létrehozásakor.');
+      alert('Hiba: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -325,16 +360,13 @@ function AppGameUI() {
   const handleCreateLocation = async (e) => {
     e.preventDefault();
     try {
-      await locationsAPI.create({
-        ...newLocation,
-        parent_id: newLocation.parent_id || null
-      });
+      await locationsAPI.create(newLocation);
       await loadLocations();
-      setNewLocation({ name: '', description: '', parent_id: null, icon: '📍' });
+      setNewLocation({ country: 'Magyarország', postal_code: '', city: '', address: '' });
       alert('✅ Helyszín hozzáadva!');
     } catch (error) {
       console.error('Location létrehozási hiba:', error);
-      alert('Hiba történt a helyszín létrehozásakor.');
+      alert('Hiba: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -581,7 +613,7 @@ function AppGameUI() {
                       className={`game-tab ${selectedCategory === null ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedCategory(null);
-                        loadData();
+                        filterItems(searchQuery, null);
                       }}
                     >
                       Összes
@@ -605,7 +637,7 @@ function AppGameUI() {
                     <button className="game-btn game-btn-primary" onClick={handleAddItem}>
                       ➕ Új tárgy
                     </button>
-                    <button className="game-btn game-btn-success" onClick={loadData}>
+                    <button className="game-btn game-btn-success" onClick={() => loadData(true)}>
                       🔄 Frissítés
                     </button>
                   </div>
@@ -766,14 +798,19 @@ function AppGameUI() {
       {/* User Management Modal */}
       {showUserModal && (
         <div className="game-modal-overlay" onClick={() => setShowUserModal(false)}>
-          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
-            <div className="game-modal-header">
+          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ 
+            maxWidth: '700px', 
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div className="game-modal-header" style={{ flexShrink: 0 }}>
               <span>👤 Felhasználók kezelése</span>
               <div className="game-modal-close" onClick={() => setShowUserModal(false)}>
                 ✕
               </div>
             </div>
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
               <div className="game-alert">
                 <div className="game-alert-header">👤 Felhasználók listája</div>
                 <div className="game-alert-content">
@@ -784,27 +821,66 @@ function AppGameUI() {
               {users.length > 0 ? (
                 <div className="game-items-list" style={{ marginTop: '20px' }}>
                   {users.map(user => (
-                    <div key={user.id} className="game-item-list-row">
-                      <div className="game-item-list-left">
-                        <div className="game-item-list-icon" style={{ 
-                          background: user.avatar_color || '#6B9BD5',
-                          borderRadius: '50%',
-                          width: '40px',
-                          height: '40px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '20px'
-                        }}>
-                          {user.username?.charAt(0).toUpperCase() || '?'}
-                        </div>
-                        <div className="game-item-list-info">
-                          <h3>{user.display_name || user.username}</h3>
-                          <p>{user.email || 'Nincs email'}</p>
-                        </div>
+                    <div key={user.id} style={{ 
+                      background: 'var(--game-cream-light)',
+                      borderRadius: 'var(--radius-medium)',
+                      padding: '15px',
+                      marginBottom: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '15px'
+                    }}>
+                      <div style={{ 
+                        background: user.avatar_color || '#6B9BD5',
+                        borderRadius: '50%',
+                        width: '50px',
+                        height: '50px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        border: '3px solid var(--game-brown)',
+                        flexShrink: 0
+                      }}>
+                        {(user.last_name || user.username)?.charAt(0).toUpperCase() || '?'}
                       </div>
-                      <div className="game-item-list-right">
-                        <button className="game-btn game-btn-small">✏️ Szerkeszt</button>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>{user.display_name || user.username}</h3>
+                        <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'var(--game-brown-medium)' }}>
+                          {user.email || 'Nincs email'} {user.phone && `• ${user.phone}`}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button 
+                          className="game-btn game-btn-small"
+                          onClick={() => {
+                            setEditingUser(user);
+                            setNewUser({ 
+                              username: user.username, 
+                              first_name: user.first_name || '', 
+                              last_name: user.last_name || '',
+                              email: user.email || '',
+                              phone: user.phone || ''
+                            });
+                          }}
+                          style={{ background: 'var(--game-blue)', borderColor: 'var(--game-blue-dark)', padding: '8px 12px' }}
+                        >✏️</button>
+                        <button 
+                          className="game-btn game-btn-small"
+                          onClick={async () => {
+                            if (confirm(`Biztosan törlöd "${user.display_name}" felhasználót?`)) {
+                              try {
+                                await usersAPI.delete(user.id);
+                                loadUsers();
+                              } catch (err) {
+                                alert('Hiba a törlés során: ' + err.message);
+                              }
+                            }
+                          }}
+                          style={{ background: 'var(--game-red)', borderColor: 'var(--game-red-dark)', padding: '8px 12px' }}
+                        >🗑️</button>
                       </div>
                     </div>
                   ))}
@@ -817,36 +893,96 @@ function AppGameUI() {
                 </div>
               )}
 
-              <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ 
+                marginTop: '20px', 
+                padding: '20px', 
+                background: 'var(--game-cream)',
+                borderRadius: 'var(--radius-medium)',
+                border: 'var(--border-medium) solid var(--game-brown)'
+              }}>
+                <h4 style={{ margin: '0 0 15px', fontSize: '16px' }}>
+                  {editingUser ? '✏️ Felhasználó szerkesztése' : '➕ Új felhasználó'}
+                </h4>
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    if (editingUser) {
+                      await usersAPI.update(editingUser.id, newUser);
+                      setEditingUser(null);
+                    } else {
+                      await handleCreateUser(e);
+                    }
+                    setNewUser({ username: '', first_name: '', last_name: '', email: '', phone: '' });
+                    loadUsers();
+                  } catch (err) {
+                    alert('Hiba: ' + (err.response?.data?.detail || err.message));
+                  }
+                }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <input
+                    type="text"
+                    className="game-search-input"
+                    placeholder="Felhasználónév (egyedi azonosító)"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    required
+                    disabled={!!editingUser}
+                    style={{ padding: '12px', borderRadius: '8px' }}
+                  />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <input
                       type="text"
                       className="game-search-input"
-                      placeholder="Felhasználónév"
-                      value={newUser.username}
-                      onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                      placeholder="Családnév"
+                      value={newUser.last_name}
+                      onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
                       required
+                      style={{ padding: '12px', borderRadius: '8px' }}
                     />
                     <input
                       type="text"
                       className="game-search-input"
-                      placeholder="Megjelenített név"
-                      value={newUser.display_name}
-                      onChange={(e) => setNewUser({ ...newUser, display_name: e.target.value })}
+                      placeholder="Keresztnév"
+                      value={newUser.first_name}
+                      onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
                       required
+                      style={{ padding: '12px', borderRadius: '8px' }}
                     />
                   </div>
-                  <input
-                    type="email"
-                    className="game-search-input"
-                    placeholder="Email (opcionális)"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  />
-                  <button className="game-btn game-btn-primary" type="submit">
-                    ➕ Új felhasználó
-                  </button>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <input
+                      type="email"
+                      className="game-search-input"
+                      placeholder="Email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                      style={{ padding: '12px', borderRadius: '8px' }}
+                    />
+                    <input
+                      type="tel"
+                      className="game-search-input"
+                      placeholder="Telefonszám"
+                      value={newUser.phone}
+                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                      style={{ padding: '12px', borderRadius: '8px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="game-btn game-btn-primary" type="submit" style={{ flex: 1 }}>
+                      {editingUser ? '💾 Mentés' : '➕ Hozzáadás'}
+                    </button>
+                    {editingUser && (
+                      <button 
+                        type="button" 
+                        className="game-btn game-btn-secondary"
+                        onClick={() => {
+                          setEditingUser(null);
+                          setNewUser({ username: '', first_name: '', last_name: '', email: '', phone: '' });
+                        }}
+                      >
+                        ✕ Mégse
+                      </button>
+                    )}
+                  </div>
                 </form>
               </div>
             </div>
@@ -857,14 +993,19 @@ function AppGameUI() {
       {/* Location Management Modal */}
       {showLocationModal && (
         <div className="game-modal-overlay" onClick={() => setShowLocationModal(false)}>
-          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
-            <div className="game-modal-header">
+          <div className="game-modal" onClick={(e) => e.stopPropagation()} style={{ 
+            maxWidth: '700px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div className="game-modal-header" style={{ flexShrink: 0 }}>
               <span>📍 Helyszínek kezelése</span>
               <div className="game-modal-close" onClick={() => setShowLocationModal(false)}>
                 ✕
               </div>
             </div>
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
               <div className="game-alert">
                 <div className="game-alert-header">📍 Helyszínek listája</div>
                 <div className="game-alert-content">
@@ -874,19 +1015,64 @@ function AppGameUI() {
 
               {locations.length > 0 ? (
                 <div className="game-items-list" style={{ marginTop: '20px' }}>
-                  {locations.map(location => (
-                    <div key={location.id} className="game-item-list-row">
-                      <div className="game-item-list-left">
-                        <div className="game-item-list-icon">
-                          {location.icon || '📍'}
-                        </div>
-                        <div className="game-item-list-info">
-                          <h3>{location.name}</h3>
-                          <p>{location.full_path || location.description || 'Nincs leírás'}</p>
-                        </div>
+                  {locations.map(loc => (
+                    <div key={loc.id} style={{ 
+                      background: 'var(--game-cream-light)',
+                      borderRadius: 'var(--radius-medium)',
+                      padding: '15px',
+                      marginBottom: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '15px'
+                    }}>
+                      <div style={{ 
+                        background: 'var(--game-green)',
+                        borderRadius: '50%',
+                        width: '50px',
+                        height: '50px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                        border: '3px solid var(--game-brown)',
+                        flexShrink: 0
+                      }}>
+                        📍
                       </div>
-                      <div className="game-item-list-right">
-                        <button className="game-btn game-btn-small">✏️ Szerkeszt</button>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>{loc.city}{loc.address && `, ${loc.address}`}</h3>
+                        <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'var(--game-brown-medium)' }}>
+                          {loc.country} {loc.postal_code}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button 
+                          className="game-btn game-btn-small"
+                          onClick={() => {
+                            setEditingLocation(loc);
+                            setNewLocation({ 
+                              country: loc.country || 'Magyarország', 
+                              postal_code: loc.postal_code || '',
+                              city: loc.city || '',
+                              address: loc.address || ''
+                            });
+                          }}
+                          style={{ background: 'var(--game-blue)', borderColor: 'var(--game-blue-dark)', padding: '8px 12px' }}
+                        >✏️</button>
+                        <button 
+                          className="game-btn game-btn-small"
+                          onClick={async () => {
+                            if (confirm(`Biztosan törlöd "${loc.city}" helyszínt? A tárgyakból el lesz távolítva a helyszín.`)) {
+                              try {
+                                await locationsAPI.delete(loc.id);
+                                loadLocations();
+                              } catch (err) {
+                                alert('Hiba a törlés során: ' + (err.response?.data?.detail || err.message));
+                              }
+                            }
+                          }}
+                          style={{ background: 'var(--game-red)', borderColor: 'var(--game-red-dark)', padding: '8px 12px' }}
+                        >🗑️</button>
                       </div>
                     </div>
                   ))}
@@ -899,39 +1085,83 @@ function AppGameUI() {
                 </div>
               )}
 
-              <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <form onSubmit={handleCreateLocation} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ 
+                marginTop: '20px', 
+                padding: '20px', 
+                background: 'var(--game-cream)',
+                borderRadius: 'var(--radius-medium)',
+                border: 'var(--border-medium) solid var(--game-brown)'
+              }}>
+                <h4 style={{ margin: '0 0 15px', fontSize: '16px' }}>
+                  {editingLocation ? '✏️ Helyszín szerkesztése' : '➕ Új helyszín'}
+                </h4>
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    if (editingLocation) {
+                      await locationsAPI.update(editingLocation.id, newLocation);
+                      setEditingLocation(null);
+                    } else {
+                      await handleCreateLocation(e);
+                    }
+                    setNewLocation({ country: 'Magyarország', postal_code: '', city: '', address: '' });
+                    loadLocations();
+                  } catch (err) {
+                    alert('Hiba: ' + (err.response?.data?.detail || err.message));
+                  }
+                }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <input
+                      type="text"
+                      className="game-search-input"
+                      placeholder="Ország"
+                      value={newLocation.country}
+                      onChange={(e) => setNewLocation({ ...newLocation, country: e.target.value })}
+                      style={{ padding: '12px', borderRadius: '8px' }}
+                    />
+                    <input
+                      type="text"
+                      className="game-search-input"
+                      placeholder="Irányítószám"
+                      value={newLocation.postal_code}
+                      onChange={(e) => setNewLocation({ ...newLocation, postal_code: e.target.value })}
+                      style={{ padding: '12px', borderRadius: '8px' }}
+                    />
+                  </div>
                   <input
                     type="text"
                     className="game-search-input"
-                    placeholder="Helyszín neve"
-                    value={newLocation.name}
-                    onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
+                    placeholder="Helység (város)"
+                    value={newLocation.city}
+                    onChange={(e) => setNewLocation({ ...newLocation, city: e.target.value })}
                     required
+                    style={{ padding: '12px', borderRadius: '8px' }}
                   />
-                  <textarea
+                  <input
+                    type="text"
                     className="game-search-input"
-                    placeholder="Leírás (opcionális)"
-                    value={newLocation.description}
-                    onChange={(e) => setNewLocation({ ...newLocation, description: e.target.value })}
-                    rows="2"
-                    style={{ resize: 'vertical' }}
+                    placeholder="Lakcím (utca, házszám)"
+                    value={newLocation.address}
+                    onChange={(e) => setNewLocation({ ...newLocation, address: e.target.value })}
+                    style={{ padding: '12px', borderRadius: '8px' }}
                   />
-                  <select
-                    className="game-search-input"
-                    value={newLocation.parent_id || ''}
-                    onChange={(e) => setNewLocation({ ...newLocation, parent_id: e.target.value ? parseInt(e.target.value) : null })}
-                  >
-                    <option value="">Fő szint</option>
-                    {locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>
-                        {loc.full_path || loc.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button className="game-btn game-btn-primary" type="submit">
-                    ➕ Új helyszín
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="game-btn game-btn-primary" type="submit" style={{ flex: 1 }}>
+                      {editingLocation ? '💾 Mentés' : '➕ Hozzáadás'}
+                    </button>
+                    {editingLocation && (
+                      <button 
+                        type="button" 
+                        className="game-btn game-btn-secondary"
+                        onClick={() => {
+                          setEditingLocation(null);
+                          setNewLocation({ country: 'Magyarország', postal_code: '', city: '', address: '' });
+                        }}
+                      >
+                        ✕ Mégse
+                      </button>
+                    )}
+                  </div>
                 </form>
               </div>
             </div>
