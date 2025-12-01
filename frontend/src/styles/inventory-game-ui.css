@@ -61,6 +61,212 @@
   --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Több képes feltöltés és előnézet */
+.file-upload-area.multi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.multi-image-help {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.multi-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.multi-image-thumb {
+  background: var(--game-cream-light);
+  border: var(--border-thin) solid var(--game-brown);
+  border-radius: var(--radius-small);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.multi-image-thumb img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  border-radius: var(--radius-small);
+  background: white;
+}
+
+.multi-image-thumb.portrait img {
+  height: 150px;
+}
+
+.multi-image-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--game-brown);
+}
+
+.multi-image-meta button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--game-red);
+}
+
+.preview-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.preview-image-card {
+  background: var(--game-cream-light);
+  border: var(--border-thin) solid var(--game-brown);
+  border-radius: var(--radius-medium);
+  padding: 10px;
+}
+
+.preview-image-card img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: var(--radius-small);
+  background: white;
+}
+
+.preview-gallery-main {
+  display: grid;
+  gap: 12px;
+}
+
+.preview-main-frame {
+  position: relative;
+  background: linear-gradient(145deg, #f3f5f9, #e8ecf5);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  min-height: 280px;
+}
+
+.preview-main-frame img {
+  max-width: 100%;
+  max-height: 480px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.preview-main-frame.empty {
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-main-frame.landscape img { width: 100%; }
+.preview-main-frame.portrait img { height: 420px; }
+
+.preview-nav {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 6px 12px;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.preview-nav button {
+  border: none;
+  background: var(--primary-color);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.preview-nav button:hover {
+  transform: translateY(-1px);
+}
+
+.preview-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.preview-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.preview-thumb.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.preview-thumb img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.preview-documents {
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #fdfdff, #f3f6ff);
+}
+
+.preview-doc-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.preview-doc-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.1s ease;
+}
+
+.preview-doc-item:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
 /* ========== GLOBÁLIS STÍLUSOK ========== */
 * {
   margin: 0;
@@ -167,7 +373,7 @@ body {
   margin-bottom: 25px;
 }
 
-/* Sidebar (Bal oldali zöld panel) */
+/* Sidebar (Bal oldali zöld panel) - STICKY */
 .game-sidebar {
   background: var(--game-green);
   border: var(--border-thick) solid var(--game-brown);
@@ -176,6 +382,10 @@ body {
   width: 250px;
   box-shadow: var(--shadow-game);
   flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+  align-self: flex-start;
 }
 
 .game-sidebar-title {
@@ -603,6 +813,18 @@ body {
   box-shadow: 0 3px 0px rgba(58, 40, 23, 0.3);
 }
 
+.game-item-list-row.disabled-card {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f6efe5;
+  border-style: dashed;
+}
+
+.game-item-list-row.disabled-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .game-item-list-left {
   display: flex;
   align-items: center;
@@ -633,6 +855,15 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+.game-chip {
+  background: var(--game-cream);
+  border: 2px solid var(--game-brown);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--font-game);
+  color: var(--game-brown);
 }
 
 /* ========== FOOTER ACTIONS ========== */
@@ -754,9 +985,12 @@ body {
     flex-direction: column !important;
   }
 
-  /* ========== 3. SIDEBAR → VÍZSZINTES IKON MENÜ ========== */
+  /* ========== 3. SIDEBAR → STICKY VÍZSZINTES IKON MENÜ ========== */
   .game-sidebar {
     order: 2 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
     width: 100% !important;
     padding: 0 !important;
     margin-bottom: 10px !important;
@@ -770,7 +1004,7 @@ body {
     display: none !important;
   }
 
-  /* Menü vízszintes, csak ikonok */
+  /* Menü vízszintes, csak ikonok - STICKY */
   .game-sidebar-menu {
     display: flex !important;
     flex-direction: row !important;
@@ -792,42 +1026,21 @@ body {
     min-width: 56px !important;
     padding: 0 !important;
     text-align: center !important;
-    font-size: 0 !important; /* Szöveg elrejtése */
-    border-radius: 50% !important; /* Kerek gomb */
+    border-radius: 50% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  /* Emoji ikonok - nagy, ujjal nyomható */
-  .game-sidebar-item:nth-child(1)::before {
-    content: '📦';
-    font-size: 36px !important;
-    display: block;
+  /* Ikon megjelenítése - nagy méret */
+  .game-sidebar-item .menu-icon {
+    font-size: 28px !important;
+    line-height: 1 !important;
   }
 
-  .game-sidebar-item:nth-child(2)::before {
-    content: '⚠️';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(3)::before {
-    content: '📊';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(4)::before {
-    content: '📷';
-    font-size: 36px !important;
-    display: block;
-  }
-
-  .game-sidebar-item:nth-child(5)::before {
-    content: '⚙️';
-    font-size: 36px !important;
-    display: block;
+  /* Szöveg elrejtése mobilon */
+  .game-sidebar-item .menu-label {
+    display: none !important;
   }
 
   /* Active state */
@@ -956,5 +1169,184 @@ body {
 @media (min-width: 769px) and (max-width: 1024px) {
   .game-stats-row {
     order: initial !important;
+  }
+}
+
+/* ========== Több kép és tájolás ========== */
+.item-card .item-image.portrait img {
+  object-fit: contain;
+  max-height: 180px;
+}
+
+.item-card .item-image.landscape img {
+  object-fit: contain;
+}
+
+/* ============================================================================
+   LANDSCAPE MÓD - MOBILON FEKVŐ NÉZETBEN IS MOBIL UI
+   ============================================================================ 
+   Ha a magasság kisebb mint 600px (fekvő telefon), akkor is mobil layoutot használunk
+*/
+@media (orientation: landscape) and (max-height: 600px) {
+  /* Fő container */
+  .game-ui-container {
+    display: flex !important;
+    flex-direction: column !important;
+    padding-left: 55px !important; /* Hely a fix sidebar-nak */
+  }
+  
+  /* Header kompakt */
+  .game-header {
+    padding: 6px 10px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .game-title {
+    font-size: 18px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .game-subtitle {
+    display: none !important;
+  }
+
+  /* Layout */
+  .game-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Sidebar - FIX pozíció bal oldalon */
+  .game-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    padding: 8px 4px !important;
+    margin: 0 !important;
+    z-index: 1000 !important;
+    background: var(--game-green) !important;
+    border-right: var(--border-thick) solid var(--game-brown) !important;
+    border-radius: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  .game-sidebar-title {
+    display: none !important;
+  }
+
+  /* Menü - függőleges, csak ikonok */
+  .game-sidebar-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Menü gombok - kerek, CSAK IKON */
+  .game-sidebar-item {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  /* Ikon látszik */
+  .game-sidebar-item .menu-icon {
+    font-size: 18px !important;
+    line-height: 1 !important;
+  }
+
+  /* Szöveg elrejtése */
+  .game-sidebar-item .menu-label {
+    display: none !important;
+  }
+
+  .game-sidebar-item.active {
+    transform: scale(1.15) !important;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
+  }
+
+  /* Fő tartalom */
+  .game-main-content {
+    flex: 1 !important;
+    padding: 8px !important;
+    min-width: 0 !important;
+  }
+
+  /* Stats sor kompakt */
+  .game-stats-row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .game-stat-badge {
+    flex: 1 !important;
+    padding: 6px !important;
+    text-align: center !important;
+  }
+
+  .game-stat-badge .stat-value {
+    font-size: 16px !important;
+  }
+
+  .game-stat-badge .stat-label {
+    font-size: 9px !important;
+  }
+
+  /* Kártyák grid */
+  .game-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .game-item-card {
+    padding: 8px !important;
+  }
+
+  .game-item-card .item-name {
+    font-size: 13px !important;
+  }
+
+  .game-item-card .item-image {
+    height: 80px !important;
+  }
+
+  /* Keresés és kategóriák kompakt */
+  .game-search-bar input {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .game-category-tabs {
+    gap: 4px !important;
+    padding: 6px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+
+  .game-category-tab {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+
+  .game-action-btn {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
   }
 }

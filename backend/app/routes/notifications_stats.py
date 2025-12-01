@@ -111,6 +111,62 @@ async def get_notifications(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============= ÉRINTETT TÁRGYAK LEKÉRÉSE =============
+
+@router.get("/api/notifications/{notification_type}/items", response_model=List[Dict])
+async def get_notification_items(notification_type: str, db: Session = Depends(get_db)):
+    """
+    Egy adott értesítés típushoz tartozó tárgyak lekérése
+    
+    Típusok:
+    - NO_IMAGE: Kép nélküli tárgyak
+    - NO_LOCATION: Helyszín nélküli tárgyak
+    - OLD_PURCHASE: Régen vásárolt tárgyak (1+ év)
+    - LOW_STOCK: Alacsony készletű tárgyak
+    """
+    logger.info(f"GET /api/notifications/{notification_type}/items")
+    
+    try:
+        items = []
+        
+        if notification_type == "NO_IMAGE":
+            db_items = db.query(models.Item).filter(
+                models.Item.image_filename == None
+            ).all()
+        elif notification_type == "NO_LOCATION":
+            db_items = db.query(models.Item).filter(
+                models.Item.location_id == None
+            ).all()
+        elif notification_type == "OLD_PURCHASE":
+            one_year_ago = datetime.now().date() - timedelta(days=365)
+            db_items = db.query(models.Item).filter(
+                models.Item.purchase_date != None,
+                models.Item.purchase_date < one_year_ago
+            ).all()
+        elif notification_type == "LOW_STOCK":
+            db_items = crud.get_low_stock_items(db)
+        else:
+            raise HTTPException(status_code=400, detail=f"Ismeretlen típus: {notification_type}")
+        
+        for item in db_items:
+            items.append({
+                "id": item.id,
+                "name": item.name,
+                "category": item.category,
+                "image": item.image_filename,
+                "purchase_price": item.purchase_price
+            })
+        
+        logger.info(f"✅ {len(items)} tárgy a(z) {notification_type} típushoz")
+        return items
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Notification items hiba: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============= STATISZTIKÁK =============
 
 @router.get("/api/stats/dashboard")

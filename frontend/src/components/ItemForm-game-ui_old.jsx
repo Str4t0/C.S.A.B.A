@@ -12,14 +12,14 @@
  * - Game UI design
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import MultiImageUpload from './MultiImageUpload';
+import FileUpload from './FileUpload';
 import DocumentUploadGameUI from './DocumentUpload-game-ui';
 import DocumentListGameUI from './DocumentList-game-ui';
 import UserSelector from './UserSelector';
 import LocationSelector from './LocationSelector';
-import { api, imagesAPI } from '../services/api';
+import { imagesAPI } from '../services/api';
 
 const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange }) => {
   const [formData, setFormData] = useState({
@@ -40,18 +40,9 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
   const [qrCode, setQrCode] = useState(null);
   const [qrGenerating, setQrGenerating] = useState(null);
   const [documentRefreshKey, setDocumentRefreshKey] = useState(0);
-  const [gallery, setGallery] = useState([]);
-  const galleryRef = useRef([]);  // JAVÍTVA: ref a legfrissebb gallery értékhez
 
   useEffect(() => {
     if (item) {
-      console.log('🔄 ItemForm useEffect - item változott:', {
-        itemId: item.id,
-        itemImages: item.images,
-        itemImagesCount: item.images?.length || 0,
-        image_filename: item.image_filename
-      });
-      
       setFormData({
         name: item.name || '',
         category: item.category || '',
@@ -69,29 +60,6 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
 
       // QR kód betöltése ha van
       setQrCode(item.qr_code || null);
-      
-      // JAVÍTVA: Gallery frissítése - ha van images mező, azt használjuk, különben image_filename-t
-      const newGallery = item.images && item.images.length > 0 
-        ? item.images.map(img => ({
-            filename: img.filename,
-            original_filename: img.original_filename || img.filename,
-            orientation: img.orientation || null,
-            url: imagesAPI.getImageUrl(img.filename)
-          }))
-        : (item.image_filename ? [{ 
-            filename: item.image_filename, 
-            original_filename: item.image_filename,
-            orientation: null,
-            url: imagesAPI.getImageUrl(item.image_filename)
-          }] : []);
-      
-      console.log('🔄 Gallery frissítve:', {
-        newGalleryCount: newGallery.length,
-        newGallery: newGallery
-      });
-      
-      setGallery(newGallery);
-      galleryRef.current = newGallery;  // JAVÍTVA: ref is frissítése
     } else {
       setFormData({
         name: '',
@@ -108,8 +76,6 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
         qr_code: null
       });
       setQrCode(null);
-      setGallery([]);
-      galleryRef.current = [];  // JAVÍTVA: ref is törlése
     }
 
     // reset dirty flag when switching items or opening a fresh form
@@ -125,32 +91,12 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
     onDirtyChange?.(true);
   };
 
-  const handleGalleryChange = (images) => {
-    console.log('🖼️🖼️🖼️ ItemForm handleGalleryChange hívva!', {
-      imagesCount: images?.length || 0,
-      images: images,
-      currentGalleryCount: gallery.length,
-      currentGalleryRefCount: galleryRef.current.length
-    });
-    const newGallery = images || [];
-    
-    // JAVÍTVA: Először frissítsük a ref-et, hogy biztosan a legfrissebb érték legyen
-    galleryRef.current = newGallery;
-    
-    // Aztán frissítsük a state-et
-    setGallery(newGallery);
-    
-    // Az első kép marad fő képnek is a visszafele kompatibilitás miatt
+  const handleImageUploaded = (filename) => {
     setFormData(prev => ({
       ...prev,
-      image_filename: newGallery?.[0]?.filename || null
+      image_filename: filename
     }));
     onDirtyChange?.(true);
-    console.log('✅ Gallery state és ref frissítve:', {
-      newGalleryCount: newGallery.length,
-      galleryRefCount: galleryRef.current.length,
-      galleryStateCount: newGallery.length
-    });
   };
 
   const handleSubmit = (e) => {
@@ -175,20 +121,6 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
       return Number.isFinite(parsed) ? parsed : null;
     };
 
-    // JAVÍTVA: Használjuk a galleryRef-et, hogy biztosan a legfrissebb gallery-t kapjuk
-    // A galleryRef mindig a legfrissebb, mert a handleGalleryChange közvetlenül frissíti
-    const currentGallery = galleryRef.current.length > 0 ? galleryRef.current : gallery;
-    
-    console.log('📤📤📤 handleSubmit - gallery state:', {
-      galleryRefCount: galleryRef.current.length,
-      galleryStateCount: gallery.length,
-      currentGalleryCount: currentGallery.length,
-      currentGallery: currentGallery,
-      galleryRef: galleryRef.current,
-      galleryState: gallery,
-      usingRef: galleryRef.current.length > 0
-    });
-
     const submitData = {
       name: formData.name.trim(),
       category: formData.category,
@@ -200,31 +132,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
       user_id: normalizeNumber(formData.user_id),
       location_id: normalizeNumber(formData.location_id),
       notes: formData.notes?.trim() || null,
-      image_filename: formData.image_filename || null,
-      images: currentGallery.map(img => ({
-        filename: img.filename,
-        original_filename: img.original_filename || img.filename,
-        orientation: img.orientation || null
-      }))
+      image_filename: formData.image_filename || null
     };
 
-    // JAVÍTVA: Debug log
-    console.log('📤📤📤 ItemForm (game-ui) submit data:', {
-      name: submitData.name,
-      category: submitData.category,
-      images_count: submitData.images.length,
-      gallery_count: currentGallery.length,
-      images: submitData.images,
-      gallery: currentGallery
-    });
-
     onDirtyChange?.(false);
-    
-    console.log('📤📤📤 onSubmit meghívása submitData-val:', {
-      images_in_submitData: submitData.images,
-      images_count: submitData.images.length
-    });
-    
     onSubmit(submitData);
   };
 
@@ -290,19 +201,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
     <form onSubmit={handleSubmit} style={{ 
       maxWidth: '800px', 
       margin: '0 auto',
-      display: 'flex',
-      flexDirection: 'column',
       maxHeight: '70vh',
+      overflowY: 'auto',
       padding: '0 10px'
     }}>
-      <div style={{
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        flex: 1,
-        minHeight: 0,
-        WebkitOverflowScrolling: 'touch',
-        paddingRight: '5px'  // JAVÍTVA: scrollbar hely
-      }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Alapadatok */}
@@ -602,11 +504,10 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
             marginBottom: '15px',
             paddingBottom: '10px',
             borderBottom: 'var(--border-thin) solid var(--game-brown)'
-          }}>📸 Képek</h3>
-          <MultiImageUpload
-            initialImages={gallery}
-            onChange={handleGalleryChange}
-            itemId={item?.id}
+          }}>📸 Kép</h3>
+          <FileUpload 
+            onImageUploaded={handleImageUploaded}
+            currentImage={formData.image_filename}
           />
         </div>
 
@@ -783,19 +684,19 @@ const ItemFormGameUI = ({ item, categories, onSubmit, onCancel, onDirtyChange })
           )}
         </div>
       </div>
-      </div>
+
       {/* Form akciók */}
       <div style={{
         display: 'flex',
         gap: '10px',
         justifyContent: 'flex-end',
         paddingTop: '20px',
+        position: 'sticky',
+        bottom: 0,
         background: 'var(--game-cream)',
         borderTop: 'var(--border-medium) solid var(--game-brown)',
         marginTop: '20px',
-        paddingBottom: '10px',
-        flexShrink: 0,  // JAVÍTVA: ne zsugorodjon össze
-        zIndex: 10  // JAVÍTVA: z-index hogy mindig látszódjon
+        paddingBottom: '10px'
       }}>
         <button 
           type="button" 

@@ -6,7 +6,7 @@
 import React from 'react';
 import { imagesAPI } from '../services/api';
 
-const ItemCard = ({ item, onEdit, onDelete }) => {
+const ItemCard = ({ item, onEdit, onDelete, onPreview }) => {
   const formatPrice = (price) => {
     if (!price) return 'N/A';
     return new Intl.NumberFormat('hu-HU', {
@@ -35,12 +35,15 @@ const ItemCard = ({ item, onEdit, onDelete }) => {
     return icons[category] || '📦';
   };
 
+  const mainImage = item.images?.[0]?.filename || item.image_filename;
+  const orientationClass = item.images?.[0]?.orientation || 'square';
+
   return (
-    <div className="item-card">
-      <div className="item-image">
-        {item.image_filename ? (
-          <img 
-            src={imagesAPI.getThumbnailUrl(item.image_filename)} 
+    <div className="item-card" onClick={() => onPreview?.(item, 0)} style={{ cursor: onPreview ? 'pointer' : 'default' }}>
+      <div className={`item-image ${orientationClass}`}>
+        {mainImage ? (
+          <img
+            src={imagesAPI.getThumbnailUrl(mainImage)}
             alt={item.name}
             onError={(e) => {
               e.target.style.display = 'none';
@@ -77,19 +80,28 @@ const ItemCard = ({ item, onEdit, onDelete }) => {
           </div>
           
           <div className="item-actions">
-            <button 
-              className="icon-btn" 
-              onClick={() => onEdit(item)}
+            <button
+              className="icon-btn"
+              onClick={(e) => { e.stopPropagation(); onEdit(item); }}
               title="Szerkesztés"
             >
               ✏️
             </button>
-            <button 
-              className="icon-btn delete" 
-              onClick={() => onDelete(item.id)}
-              title="Törlés"
-            >
-              🗑️
+            {onPreview && (
+              <button
+                className="icon-btn"
+                onClick={(e) => { e.stopPropagation(); onPreview(item, 0); }}
+                title="Előnézet"
+              >
+                👁️
+              </button>
+            )}
+              <button
+                className="icon-btn delete"
+                onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+                title="Törlés"
+              >
+                🗑️
             </button>
           </div>
         </div>

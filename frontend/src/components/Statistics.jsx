@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, Package, DollarSign, AlertTriangle, Image as ImageIcon,
   TrendingUp, Users, MapPin, Calendar
@@ -8,6 +9,7 @@ import api from '../services/api';
 import '../styles/Statistics.css';
 
 const Statistics = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -150,7 +152,7 @@ const Statistics = () => {
 
       {/* Two Column Layout */}
       <div className="stats-two-column">
-        {/* Top Items */}
+        {/* Top Items - KATTINTHATÓ */}
         <div className="stats-section">
           <h2>💎 Top 5 legértékesebb tárgy</h2>
           <div className="top-items-list">
@@ -158,7 +160,20 @@ const Statistics = () => {
               <div className="empty-message">Nincs ár információ megadva</div>
             ) : (
               top_items.map((item, index) => (
-                <div key={item.id} className="top-item-card">
+                <div 
+                  key={item.id} 
+                  className="top-item-card clickable"
+                  onClick={() => {
+                    console.log('📊 Top item kattintás: item_id =', item.id);
+                    navigate('/', { 
+                      state: { previewItemId: item.id },
+                      replace: false
+                    });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  title="Kattints a tárgy megtekintéséhez"
+                >
                   <div className="item-rank">#{index + 1}</div>
                   {item.image && (
                     <img 

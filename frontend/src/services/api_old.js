@@ -6,11 +6,7 @@
 import axios from 'axios';
 
 // API base URL - módosítsd ha szükséges
-// HTTPS esetén használjuk a Vite proxy-t (relatív URL), hogy elkerüljük a Mixed Content hibát
-const isHttps = window.location.protocol === 'https:';
-const API_BASE_URL = isHttps 
-  ? '/api'  // Relatív URL - Vite proxy-n keresztül megy
-  : (import.meta.env.VITE_API_URL || 'http://localhost:8000/api');
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Axios instance létrehozása
 export const api = axios.create({
@@ -111,25 +107,10 @@ export const itemsAPI = {
   // Tárgy frissítése
   update: async (id, itemData) => {
     try {
-      console.log('🌐🌐🌐 API PUT /items/' + id, {
-        itemData_keys: Object.keys(itemData),
-        images_in_data: itemData.images,
-        images_count: itemData.images?.length || 0,
-        full_data: itemData
-      });
       const response = await api.put(`/items/${id}`, itemData);
-      console.log('✅ API PUT válasz:', {
-        response_images: response.data?.images,
-        response_images_count: response.data?.images?.length || 0
-      });
       return response.data;
     } catch (error) {
-      console.error('❌ Item update error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+      console.error('Item update error:', error);
       throw error;
     }
   },
@@ -141,21 +122,6 @@ export const itemsAPI = {
       return response.data;
     } catch (error) {
       console.error('Item delete error:', error);
-      throw error;
-    }
-  },
-
-  // Kép feltöltése egy tárgyhoz (POST /api/items/{item_id}/images)
-  uploadImage: async (itemId, formData) => {
-    try {
-      const response = await api.post(`/items/${itemId}/images`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Image upload to item error:', error);
       throw error;
     }
   }
@@ -350,12 +316,10 @@ export const uploadAPI = {
     }
   },
 
-  document: async (itemId, file, documentType, description) => {
+  document: async (itemId, file) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      if (documentType) formData.append('document_type', documentType);
-      if (description) formData.append('description', description);
       
       const response = await api.post(`/items/${itemId}/documents`, formData, {
         headers: {
@@ -377,11 +341,7 @@ export const imagesAPI = {
   // Kép URL generálás
   getImageUrl: (filename) => {
     if (!filename) return null;
-    // HTTPS esetén relatív URL-t használunk (Vite proxy-n keresztül)
-    if (window.location.protocol === 'https:') {
-      return `/uploads/${filename}`;
-    }
-    // HTTP esetén teljes URL
+    // API_BASE_URL-ből kivonjuk az /api részt
     const baseURL = API_BASE_URL.replace('/api', '');
     return `${baseURL}/uploads/${filename}`;
   },
@@ -389,11 +349,7 @@ export const imagesAPI = {
   // Thumbnail URL generálás
   getThumbnailUrl: (filename) => {
     if (!filename) return null;
-    // HTTPS esetén relatív URL-t használunk (Vite proxy-n keresztül)
-    if (window.location.protocol === 'https:') {
-      return `/uploads/thumbnails/thumb_${filename}`;
-    }
-    // HTTP esetén teljes URL
+    // API_BASE_URL-ből kivonjuk az /api részt
     const baseURL = API_BASE_URL.replace('/api', '');
     return `${baseURL}/uploads/thumbnails/thumb_${filename}`;
   },
@@ -408,18 +364,13 @@ export const imagesAPI = {
 
 export const documentsAPI = {
   // Dokumentum feltöltés
-  upload: async (itemId, file, documentType, description) => {
-    return uploadAPI.document(itemId, file, documentType, description);
+  upload: async (itemId, file) => {
+    return uploadAPI.document(itemId, file);
   },
 
   // Dokumentum URL generálás
   getDocumentUrl: (filename) => {
     if (!filename) return null;
-    // HTTPS esetén relatív URL-t használunk (Vite proxy-n keresztül)
-    if (window.location.protocol === 'https:') {
-      return `/documents/${filename}`;
-    }
-    // HTTP esetén teljes URL
     const baseURL = API_BASE_URL.replace('/api', '');
     return `${baseURL}/documents/${filename}`;
   },

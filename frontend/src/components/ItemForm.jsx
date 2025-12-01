@@ -10,8 +10,8 @@
  * - Dokumentum feltöltés
  */
 
-import React, { useState, useEffect } from 'react';
-import FileUpload from './FileUpload';
+import React, { useState, useEffect, useRef } from 'react';
+import MultiImageUpload from './MultiImageUpload';
 import DocumentUpload from './DocumentUpload';
 import DocumentList from './DocumentList';
 import UserSelector from './UserSelector';
@@ -35,6 +35,8 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
 
   const [qrCode, setQrCode] = useState(null);
   const [generatingQR, setGeneratingQR] = useState(false);
+  const [gallery, setGallery] = useState([]);
+  const galleryRef = useRef([]);  // JAVÍTVA: galleryRef definiálása
 
   useEffect(() => {
     if (item) {
@@ -56,6 +58,13 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
       if (item.qr_code) {
         setQrCode(item.qr_code);
       }
+      // Képek betöltése
+      const newGallery = item.images || (item.image_filename ? [{ filename: item.image_filename, original_filename: item.image_filename, orientation: null }] : []);
+      setGallery(newGallery);
+      galleryRef.current = newGallery;  // JAVÍTVA: ref is frissítése
+    } else {
+      setGallery([]);
+      galleryRef.current = [];  // JAVÍTVA: ref is törlése
     }
   }, [item]);
 
@@ -67,11 +76,20 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
     }));
   };
 
-  const handleImageUploaded = (filename) => {
+  const handleGalleryChange = (images) => {
+    console.log('🖼️🖼️🖼️ ItemForm (retro) handleGalleryChange hívva!', {
+      imagesCount: images?.length || 0,
+      images: images
+    });
+    const newGallery = images || [];
+    setGallery(newGallery);
+    galleryRef.current = newGallery;  // JAVÍTVA: ref is frissítése
+    // Az első kép marad fő képnek is a visszafele kompatibilitás miatt
     setFormData(prev => ({
       ...prev,
-      image_filename: filename
+      image_filename: newGallery?.[0]?.filename || null
     }));
+    console.log('✅ Gallery state frissítve (retro):', newGallery.length, 'képpel');
   };
 
   const handleSubmit = (e) => {
@@ -84,14 +102,36 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
     }
 
     // Numerikus mezők konvertálása
+    // JAVÍTVA: Használjuk a galleryRef-et, hogy biztosan a legfrissebb gallery-t kapjuk
+    const currentGallery = galleryRef.current.length > 0 ? galleryRef.current : gallery;
+    
+    console.log('📤 handleSubmit (retro) - gallery state:', {
+      galleryRefCount: galleryRef.current.length,
+      galleryStateCount: gallery.length,
+      currentGalleryCount: currentGallery.length
+    });
+    
     const submitData = {
       ...formData,
       purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
       quantity: parseInt(formData.quantity) || 1,
       min_quantity: formData.min_quantity ? parseInt(formData.min_quantity) : null,
       user_id: formData.user_id || null,
-      location_id: formData.location_id || null
+      location_id: formData.location_id || null,
+      images: currentGallery.map(img => ({
+        filename: img.filename,
+        original_filename: img.original_filename || img.filename,
+        orientation: img.orientation || null
+      }))
     };
+
+    // JAVÍTVA: Debug log
+    console.log('📤📤📤 ItemForm (retro) submit data:', {
+      ...submitData,
+      images_count: submitData.images.length,
+      gallery_count: gallery?.length || 0,
+      gallery: gallery
+    });
 
     onSubmit(submitData);
   };
@@ -280,10 +320,11 @@ const ItemForm = ({ item, categories, onSubmit, onCancel }) => {
 
         {/* Kép feltöltés */}
         <div className="form-section">
-          <h3>📸 Kép</h3>
-          <FileUpload 
-            onImageUploaded={handleImageUploaded}
-            currentImage={formData.image_filename}
+          <h3>📸 Képek</h3>
+          <MultiImageUpload
+            initialImages={gallery}
+            onChange={handleGalleryChange}
+            itemId={item?.id}
           />
         </div>
 

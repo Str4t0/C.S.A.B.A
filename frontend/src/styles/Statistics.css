@@ -175,7 +175,7 @@
 /* Two Column Layout */
 .stats-two-column {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -186,6 +186,7 @@
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-width: 0;
 }
 
 .stats-section.full-width {
@@ -222,6 +223,20 @@
 .top-item-card:hover {
   transform: translateX(4px);
   background: #e8f4fd;
+}
+
+.top-item-card.clickable {
+  cursor: pointer;
+}
+
+.top-item-card.clickable:hover {
+  transform: translateX(8px);
+  background: #d4edfc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.top-item-card.clickable:active {
+  transform: translateX(4px);
 }
 
 .item-rank {
@@ -277,17 +292,21 @@
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .category-item {
-  /* Full item */
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .category-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
   margin-bottom: 0.5rem;
 }
 

@@ -10,6 +10,37 @@ from . import models, schemas
 from typing import List, Optional
 
 
+def _normalize_images(images):
+    """Fogadjon el dict vagy Pydantic objektumot és adja vissza egységes dict listaként."""
+
+    normalized = []
+    if not images:
+        return normalized
+
+    for image in images:
+        filename = None
+        original_filename = None
+        orientation = None
+
+        if isinstance(image, dict):
+            filename = image.get("filename") or image.get("image_filename")
+            original_filename = image.get("original_filename") or filename  # JAVÍTVA: original_filename hozzáadva
+            orientation = image.get("orientation")
+        else:
+            filename = getattr(image, "filename", None) or getattr(image, "image_filename", None)
+            original_filename = getattr(image, "original_filename", None) or filename  # JAVÍTVA: original_filename hozzáadva
+            orientation = getattr(image, "orientation", None)
+
+        if filename:
+            normalized.append({
+                "filename": filename,
+                "original_filename": original_filename or filename,  # JAVÍTVA: ha nincs original_filename, használjuk a filename-t
+                "orientation": orientation
+            })
+
+    return normalized
+
+
 # ============= ITEMS CRUD =============
 
 def get_items(db: Session, skip: int = 0, limit: int = 100) -> List[models.Item]:
@@ -81,12 +112,23 @@ def create_item(db: Session, item: schemas.ItemCreate) -> models.Item:
         item_data["quantity"] = 1
     
     # Hozd létre az item-et
+    images = _normalize_images(item_data.pop("images", []))
+
     db_item = models.Item(**item_data)
-    
+
+    for image in images:
+        db_item.images.append(
+            models.ItemImage(
+                filename=image["filename"],
+                original_filename=image.get("original_filename") or image["filename"],  # JAVÍTVA: original_filename hozzáadva
+                orientation=image.get("orientation")
+            )
+        )
+
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    
+
     return db_item
 
 
@@ -94,6 +136,9 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
     """
     Item frissítése - JAVÍTVA
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     db_item = get_item(db, item_id)
     if not db_item:
         return None
@@ -101,14 +146,50 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate) -> O
     # Csak a nem-None mezőket frissítjük
     update_data = item_update.model_dump(exclude_unset=True)
     
+    logger.info(f"🔄 update_item: item_id={item_id}, update_data keys: {list(update_data.keys())}")
+    
     # KRITIKUS: quantity validáció
     if "quantity" in update_data:
         if update_data["quantity"] is None or update_data["quantity"] < 1:
             update_data["quantity"] = 1
     
+    # JAVÍTVA: Logoljuk az images mezőt
+    if "images" in update_data:
+        logger.info(f"📸 Images mező megtalálva: {len(update_data['images']) if update_data['images'] else 0} kép")
+        logger.info(f"📸 Images tartalma: {update_data['images']}")
+    else:
+        logger.warning("⚠️ Images mező NINCS az update_data-ban!")
+    
+    images = _normalize_images(update_data.pop("images", None)) if "images" in update_data else None
+    
+    logger.info(f"📸 Normalized images: {len(images) if images else 0} kép")
+
     for field, value in update_data.items():
         setattr(db_item, field, value)
-    
+
+    if images is not None:
+        logger.info(f"📸 Képek frissítése: {len(images)} új kép")
+        # Kapcsolaton keresztül töröljük a meglévő képeket, így a session sem tartja
+        # meg a régi objektumokat. Ez megakadályozza, hogy az SQLite autoincrement
+        # az előző primer kulcsokra fusson rá bulk delete után.
+        old_count = len(db_item.images)
+        db_item.images.clear()
+        db.flush()
+        logger.info(f"📸 Régi képek törölve: {old_count} db")
+
+        for idx, image in enumerate(images):
+            logger.info(f"📸 Kép {idx+1}/{len(images)} hozzáadása: {image.get('filename')}")
+            db_item.images.append(
+                models.ItemImage(
+                    filename=image["filename"],
+                    original_filename=image.get("original_filename") or image["filename"],  # JAVÍTVA: original_filename hozzáadva
+                    orientation=image.get("orientation")
+                )
+            )
+        logger.info(f"✅ {len(images)} kép hozzáadva az itemhez")
+    else:
+        logger.info("ℹ️ Images is None, képek nem frissülnek")
+
     db.commit()
     db.refresh(db_item)
     
@@ -392,3 +473,58 @@ def delete_document(db: Session, document_id: int) -> bool:
     db.delete(db_document)
     db.commit()
     return True
+
+
+# ============= ITEM IMAGES CRUD =============
+
+def get_item_images(db: Session, item_id: int) -> List[models.ItemImage]:
+    """
+    Egy tárgy összes képének lekérése
+    """
+    return db.query(models.ItemImage).filter(models.ItemImage.item_id == item_id).order_by(models.ItemImage.order_index, models.ItemImage.id).all()
+
+
+def create_item_image(
+    db: Session,
+    item_id: int,
+    filename: str,
+    original_filename: str,
+    rotation: int = 0,
+    is_primary: bool = False
+) -> models.ItemImage:
+    """
+    Új kép létrehozása egy tárgyhoz
+    """
+    # Ha ez az elsődleges kép, akkor a többi képet ne legyen elsődleges
+    if is_primary:
+        db.query(models.ItemImage).filter(models.ItemImage.item_id == item_id).update({"is_primary": False})
+    
+    # Order index meghatározása
+    max_order = db.query(models.ItemImage).filter(models.ItemImage.item_id == item_id).count()
+    
+    db_image = models.ItemImage(
+        item_id=item_id,
+        filename=filename,
+        original_filename=original_filename,
+        rotation=rotation,
+        is_primary=is_primary,
+        order_index=max_order
+    )
+    db.add(db_image)
+    db.commit()
+    db.refresh(db_image)
+    return db_image
+
+
+def reorder_item_images(db: Session, item_id: int, image_ids: List[int]) -> List[models.ItemImage]:
+    """
+    Képek átrendezése
+    """
+    for index, image_id in enumerate(image_ids):
+        db.query(models.ItemImage).filter(
+            models.ItemImage.id == image_id,
+            models.ItemImage.item_id == item_id
+        ).update({"order_index": index})
+    
+    db.commit()
+    return get_item_images(db, item_id)

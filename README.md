@@ -1,364 +1,232 @@
-# 🏠 C.S.A.B.A - Home Inventory System
+# 📦 C.S.A.B.A - Central Storage And Business Application
 
-**Otthoni Tárgyi Nyilvántartó Rendszer** QR kódokkal, multi-user támogatással és retro design-nal.
+> **Otthoni Tárgyi Nyilvántartó Rendszer** - Egy modern, játékos dizájnú webalkalmazás a háztartási tárgyak nyilvántartására.
 
----
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Python](https://img.shields.io/badge/Python-3.10+-yellow.svg)
+![React](https://img.shields.io/badge/React-18+-61dafb.svg)
+
+## 🎮 Előnézet
+
+Az alkalmazás két különböző dizájnnal rendelkezik:
+- **Game UI** - Játékos, színes dizájn vastag keretekkel és emoji ikonokkal
+- **Retro UI** - Klasszikus, letisztult megjelenés
 
 ## ✨ Funkciók
 
-### 🔲 QR Kód Rendszer
-- QR címkék generálása 3 méretben (3x3, 5x5, 8x8 cm)
-- Mobil QR scanner (kamera API)
-- Nyomtatható 300 DPI címkék
-- Gyors tárgy azonosítás
+### 📱 Tárgykezelés
+- ✅ Tárgyak hozzáadása, szerkesztése, törlése
+- ✅ Több kép feltöltése tárgyankét (kamera + galéria)
+- ✅ Dokumentumok csatolása (számla, garancia, kézikönyv)
+- ✅ QR kód generálás és beolvasás
+- ✅ Kategorizálás és keresés
+- ✅ Helyszín kezelés (hierarchikus)
 
-### 👥 Multi-User Support
-- Több felhasználó kezelése
-- Színes avatárok
-- User statisztikák
-- Tárgyak user-ekhez rendelése
+### 📊 Statisztikák
+- ✅ Összes tárgy és érték áttekintés
+- ✅ Kategória szerinti bontás
+- ✅ Top 5 legértékesebb tárgy (kattintható!)
+- ✅ Havi vásárlási trend
+- ✅ Adatok teljességének mutatói
 
-### 📍 Hierarchikus Helyszínek
-- Parent-child struktúra (Lakás > Szoba > Polc)
-- Teljes elérési út
-- Ikonok helyszínekhez
-- Nested lista nézet
+### 🔔 Értesítések
+- ✅ Alacsony készlet figyelmeztetés
+- ✅ Kép nélküli tárgyak
+- ✅ Helyszín nélküli tárgyak
+- ✅ Érintett tárgyak listája modal ablakban
 
-### ⚠️ Low Stock Alerts
-- Mennyiség követés
-- Minimum készlet riasztás
-- Floating alert button
-- Auto-refresh
+### 📷 Kamera támogatás
+- ✅ Mobilon kamerával fotózás
+- ✅ HTTPS támogatás a biztonságos kamera hozzáféréshez
+- ✅ Képek automatikus mentése
 
-### 📎 Dokumentum Kezelés
-- PDF, Word, Excel, TXT támogatás
-- Számlák, garanciák tárolása
-- Letöltés funkció
-- Dokumentum típusok
-
-### 📸 Kép Kezelés
-- Fotó készítés mobilon
-- Automatikus thumbnail
-- Képfeltöltés drag & drop
-
-### 🎨 Retro Sketch Design
-- Kézzel rajzolt vintage stílus
-- Paper texture háttér
-- Sketchy borders
-- Handwritten fonts (Patrick Hand, Caveat)
-
----
+### 🎨 UI/UX
+- ✅ Reszponzív dizájn (mobil, tablet, desktop)
+- ✅ Landscape mód támogatás
+- ✅ Sticky menü görgetéskor
+- ✅ Smooth animációk
+- ✅ Két választható téma (Game UI / Retro)
 
 ## 🛠️ Technológiák
 
 ### Backend
-- **Python 3.14**
-- **FastAPI** - Modern, gyors web framework
-- **SQLAlchemy** - ORM
-- **SQLite** - Adatbázis
-- **qrcode[pil]** - QR generálás
-- **Pillow** - Képkezelés
+- **FastAPI** - Modern, gyors Python web framework
+- **SQLAlchemy** - ORM adatbázis kezelés
+- **SQLite** - Könnyűsúlyú adatbázis
+- **Pillow** - Képfeldolgozás
+- **Python-QRCode** - QR kód generálás
 
 ### Frontend
-- **React 18**
+- **React 18** - UI komponensek
+- **React Router** - Navigáció
+- **Axios** - HTTP kérések
+- **Lucide React** - Ikonok
+- **React Hot Toast** - Értesítések
 - **Vite** - Build tool
-- **Axios** - HTTP kliens
-- **@zxing/browser** - QR scanner
-- **CSS3** - Retro sketch design
-
----
 
 ## 🚀 Telepítés
 
 ### Előfeltételek
-- Python 3.14+
+- Python 3.10+
 - Node.js 18+
-- npm/yarn
+- Git
 
-### Backend
+### 1. Repository klónozása
+```bash
+git clone https://github.com/YOUR_USERNAME/home-inventory-system.git
+cd home-inventory-system
+```
 
+### 2. Backend telepítése
 ```bash
 cd backend
-
-# Virtual environment (opcionális)
 python -m venv venv
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # Linux/Mac
 
-# Dependencies
-pip install -r requirements.txt --break-system-packages
+# Windows
+venv\Scripts\activate
 
-# Adatbázis létrehozása (automatikus első indításkor)
-python -c "from app.database import Base, engine; Base.metadata.create_all(bind=engine)"
+# Linux/Mac
+source venv/bin/activate
 
-# Indítás
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+pip install -r requirements.txt
 ```
 
-**VAGY Windows Batch script:**
-```bash
-START-BACKEND-SIMPLE.bat
-```
-
-### Frontend
-
+### 3. Frontend telepítése
 ```bash
 cd frontend
-
-# Dependencies
 npm install
-
-# Development
-npm run dev
-
-# Production build
-npm run build
 ```
 
-**VAGY Windows Batch script:**
+### 4. Indítás
+
+#### Egyszerű indítás (HTTP)
 ```bash
-START-FRONTEND-SIMPLE.bat
+# Windows - projekt gyökérben
+START-ALL.bat
 ```
 
----
+#### HTTPS indítás (kamera támogatáshoz)
+```bash
+# Windows - projekt gyökérben
+START-ALL-HTTPS.bat
+```
 
-## 📱 Használat
+#### Manuális indítás
+```bash
+# Backend (külön terminálban)
+cd backend
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-### Első lépések
+# Frontend (külön terminálban)
+cd frontend
+npm run dev
+```
 
-1. **Backend indítása:** `http://localhost:8000`
-2. **Frontend indítása:** `http://localhost:3000`
-3. **API docs:** `http://localhost:8000/api/docs`
+## 📱 Hozzáférés
 
-### Mobil hozzáférés
+- **Lokális:** http://localhost:3000
+- **Hálózati:** http://YOUR_IP:3000
+- **HTTPS:** https://YOUR_IP:3000 (kamera használatához)
 
-1. Ellenőrizd helyi IP címed: `ipconfig` (Windows) / `ifconfig` (Linux/Mac)
-2. Nyisd meg: `http://[HELYI-IP]:3000` (pl: `http://192.168.1.100:3000`)
-3. QR scanner kamera engedély szükséges
-
-### Új tárgy létrehozása QR-ral
-
-1. Klikk: **"Új tárgy"** gomb
-2. Töltsd ki az adatokat (név, kategória kötelező)
-3. Válassz **tulajdonost** és **helyszínt**
-4. Állítsd be **mennyiséget** és **min. készletet**
-5. **Mentés**
-6. Nyisd meg újra → **"QR Kód"** szekció
-7. Generálj QR kódot (Kis/Közepes/Nagy)
-8. Letöltés és nyomtatás!
-
-### QR szkennelés mobilon
-
-1. Mobil: `http://[HELYI-IP]:3000`
-2. Klikk: **➕** floating gomb (jobb alsó)
-3. Válaszd: **📷 QR Szkennelés**
-4. Engedélyezd kamerát
-5. Helyezd QR kódot keretbe → Automatikus azonosítás!
-
----
-
-## 📁 Projekt Struktúra
+## 📁 Projekt struktúra
 
 ```
-C.S.A.B.A/
+home-inventory-system/
 ├── backend/
 │   ├── app/
-│   │   ├── models.py          # SQLAlchemy modellek
-│   │   ├── schemas.py         # Pydantic sémák
-│   │   ├── crud.py            # CRUD műveletek
-│   │   ├── database.py        # DB kapcsolat
-│   │   ├── main.py            # FastAPI app
-│   │   ├── routes/
-│   │   │   ├── users.py       # User API
-│   │   │   ├── locations.py  # Location API
-│   │   │   └── qr_codes.py   # QR API
-│   │   └── utils/
-│   │       ├── qr_handler.py      # QR generálás
-│   │       ├── image_handler.py   # Képkezelés
-│   │       └── document_handler.py # Dokumentumok
-│   ├── requirements.txt
-│   └── START-BACKEND-SIMPLE.bat
+│   │   ├── __init__.py
+│   │   ├── main.py          # FastAPI alkalmazás
+│   │   ├── models.py        # SQLAlchemy modellek
+│   │   ├── schemas.py       # Pydantic sémák
+│   │   ├── crud.py          # Adatbázis műveletek
+│   │   ├── database.py      # DB konfiguráció
+│   │   ├── routes/          # API végpontok
+│   │   └── utils/           # Segédfüggvények
+│   ├── uploads/             # Feltöltött képek
+│   ├── documents/           # Feltöltött dokumentumok
+│   └── requirements.txt
 │
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── ItemForm.jsx
-    │   │   ├── ItemCard.jsx
-    │   │   ├── QRScanner.jsx
-    │   │   ├── UserSelector.jsx
-    │   │   ├── LocationSelector.jsx
-    │   │   ├── LowStockAlert.jsx
-    │   │   └── QuickActions.jsx
-    │   ├── services/
-    │   │   └── api.js            # API kliens
-    │   ├── styles/
-    │   │   ├── main.css
-    │   │   └── retro-sketch.css  # Retro design
-    │   ├── App.jsx
-    │   └── main.jsx
-    ├── package.json
-    └── START-FRONTEND-SIMPLE.bat
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # React komponensek
+│   │   ├── services/        # API szolgáltatások
+│   │   ├── styles/          # CSS fájlok
+│   │   ├── App.jsx          # Retro UI
+│   │   ├── App-game-ui.jsx  # Game UI
+│   │   └── main.jsx         # Belépési pont
+│   ├── certs/               # SSL tanúsítványok
+│   └── package.json
+│
+├── START-ALL.bat            # HTTP indító
+├── START-ALL-HTTPS.bat      # HTTPS indító
+└── README.md
 ```
 
----
+## 🔧 Konfiguráció
 
-## 🔧 API Endpoints
+### Környezeti változók
 
-### Items
-- `GET /api/items` - Lista
-- `GET /api/items/{id}` - Egy tárgy
-- `POST /api/items` - Létrehozás
-- `PUT /api/items/{id}` - Módosítás
-- `DELETE /api/items/{id}` - Törlés
-- `GET /api/items/search?q=...` - Keresés
+```env
+# Backend (.env - opcionális)
+DATABASE_URL=sqlite:///./inventory.db
 
-### Users
-- `GET /api/users` - Userek listája
-- `POST /api/users` - User létrehozás
-- `GET /api/users/{id}/items` - User tárgyai
-- `GET /api/users/{id}/stats` - User statisztika
-
-### Locations
-- `GET /api/locations` - Helyszínek listája
-- `POST /api/locations` - Helyszín létrehozás
-- `GET /api/locations/{id}/items` - Helyszín tárgyai
-
-### QR Codes
-- `POST /api/qr/generate/{item_id}?size=medium` - QR generálás
-- `GET /api/qr/download/{item_id}/{size}` - QR letöltés
-- `GET /api/qr/scan/{qr_code}` - QR scan
-- `GET /api/qr/low-stock` - Alacsony készlet
-
-### Documents & Images
-- `POST /api/items/{id}/documents` - Dokumentum feltöltés
-- `POST /api/upload` - Kép feltöltés
-- `GET /api/documents/{id}/download` - Dokumentum letöltés
-
-**Teljes API dokumentáció:** `http://localhost:8000/api/docs`
-
----
-
-## 🎨 Design
-
-### Színpaletta
-- Paper Beige: `#F5E6D3`
-- Ink Dark: `#3A3226`
-- Orange Sketch: `#E67E22`
-- Green Sketch: `#82B366`
-- Blue Sketch: `#5B9BD5`
-
-### Betűtípusok
-- Patrick Hand (Fő szövegek)
-- Caveat (Címek)
-- Indie Flower (Alcímek)
-
-### Komponensek
-```jsx
-<div className="paper-card">...</div>
-<button className="btn-sketch btn-sketch-primary">...</button>
-<input className="input-sketch" />
-<span className="badge-sketch badge-sketch-orange">...</span>
+# Frontend (vite.config.js)
+# Az API automatikusan proxy-zva van /api útvonalra
 ```
 
----
+### HTTPS beállítás
 
-## 🐛 Hibaelhárítás
+A kamera funkcióhoz HTTPS szükséges. A `frontend/certs/` mappában:
+- `cert.pem` - SSL tanúsítvány
+- `key.pem` - Privát kulcs
 
-### Backend nem indul
+Generálás Git Bash-sel:
 ```bash
-# Ellenőrizd Python verziót
-python --version  # Kell: 3.14+
-
-# Telepítsd dependencies-t
-pip install -r requirements.txt --break-system-packages
-
-# Töröld és újraépítsd az adatbázist
-del backend\inventory.db
-python REBUILD-DATABASE.py
+cd frontend
+bash generate-cert.sh
 ```
 
-### Frontend nem indul
-```bash
-# Töröld node_modules
-rm -rf node_modules package-lock.json
+## 📝 API Dokumentáció
 
-# Újratelepítés
-npm install
+A backend API dokumentációja elérhető:
+- **Swagger UI:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
 
-# Dev szerver indítása
-npm run dev
-```
+### Főbb végpontok
 
-### QR scanner nem működik mobilon
-- Használd **HTTPS**-t vagy **helyi IP-t** (nem localhost)
-- Engedélyezd kamera hozzáférést a böngészőben
-- Chrome vagy Safari ajánlott
-
-### CORS hiba
-- Ellenőrizd backend CORS beállításokat (`main.py`)
-- Használd ugyanazt a network-öt (WiFi)
-
----
-
-## 📊 Statisztikák
-
-### Global Stats
-```javascript
-GET /api/stats
-
-{
-  total_items: 25,
-  total_categories: 8,
-  total_value: 125000.50,
-  items_by_category: {...},
-  low_stock_items: 5
-}
-```
-
-### User Stats
-```javascript
-GET /api/users/{id}/stats
-
-{
-  user_id: 1,
-  total_items: 12,
-  total_value: 45000,
-  items_by_category: {...}
-}
-```
-
----
+| Metódus | Útvonal | Leírás |
+|---------|---------|--------|
+| GET | /api/items | Összes tárgy |
+| POST | /api/items | Új tárgy |
+| GET | /api/items/{id} | Egy tárgy |
+| PUT | /api/items/{id} | Tárgy módosítás |
+| DELETE | /api/items/{id} | Tárgy törlés |
+| POST | /api/items/{id}/images | Kép feltöltés |
+| GET | /api/categories | Kategóriák |
+| GET | /api/notifications | Értesítések |
+| GET | /api/stats/dashboard | Statisztikák |
 
 ## 🤝 Közreműködés
 
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit: `git commit -m 'Add AmazingFeature'`
-4. Push: `git push origin feature/AmazingFeature`
-5. Open Pull Request
+1. Fork-old a repot
+2. Hozz létre egy feature branch-et (`git checkout -b feature/amazing-feature`)
+3. Commit-old a változtatásokat (`git commit -m 'Add amazing feature'`)
+4. Push-old a branch-et (`git push origin feature/amazing-feature`)
+5. Nyiss egy Pull Request-et
+
+## 📄 Licensz
+
+MIT License - lásd a [LICENSE](LICENSE) fájlt.
+
+## 👨‍💻 Készítők
+
+- **Frontend:** Sarah Kim (AI Assistant)
+- **Backend:** Maria Rodriguez (AI Assistant)
+- **Design:** Claude AI
 
 ---
 
-## 📝 Licenc
-
-MIT License - Szabad felhasználás
-
----
-
-## 👨‍💻 Fejlesztő
-
-**Készítette:** Str4t0  
-**Repo:** https://github.com/Str4t0/C.S.A.B.A
-
----
-
-## 🙏 Köszönet
-
-- FastAPI dokumentáció
-- React.js közösség
-- @zxing/browser QR scanner library
-- Google Fonts (Patrick Hand, Caveat, Indie Flower)
-
----
-
-**Élvezd a használatát!** 🎉📦✨
+<p align="center">
+  Made with ❤️ in Hungary 🇭🇺
+</p>

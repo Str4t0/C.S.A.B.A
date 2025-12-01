@@ -19,7 +19,6 @@ from .database import engine, get_db, init_db
 from .utils import image_handler, document_handler, qr_handler
 from .routes import users_router, locations_router, qr_router
 from .routes.notifications_stats import router as notif_stats_router
-from .routes.images import router as images_router
 
 # Logging beállítása
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Adatbázis inicializálás
 logger.info("Adatbázis táblák létrehozása...")
-init_db()
+models.Base.metadata.create_all(bind=engine)
 logger.info("✅ Adatbázis inicializálva")
 
 # FastAPI app inicializálás
@@ -40,18 +39,9 @@ app = FastAPI(
 )
 
 # CORS middleware - engedélyezi a frontend hozzáférést
-allowed_origins = [
-    "http://localhost:3000",
-    "https://localhost:3000",  # HTTPS támogatás
-    "http://127.0.0.1:3000",
-    "https://127.0.0.1:3000",  # HTTPS támogatás
-    "http://192.168.50.75:3000",
-    "https://192.168.50.75:3000",  # HTTPS támogatás
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],  # Production-ban konkrét origin-eket adj meg!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,7 +65,6 @@ app.include_router(users_router)
 app.include_router(locations_router)
 app.include_router(qr_router)
 app.include_router(notif_stats_router)
-app.include_router(images_router)  # JAVÍTVA: images router hozzáadva
 
 logger.info("✅ Backend inicializálva")
 

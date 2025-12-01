@@ -112,8 +112,16 @@ const FileUpload = ({ onImageUploaded, currentImage }) => {
   };
 
   const handleCameraCapture = async (file) => {
-    await uploadFile(file);
+    console.log('📷 Kamera kép készítve, feltöltés...', file.name);
     setShowCamera(false);
+    // JAVÍTVA: várjuk meg az uploadFile befejezését, mielőtt bezárjuk a kamerát
+    try {
+      await uploadFile(file);
+      console.log('✅ Kamera kép sikeresen feltöltve');
+    } catch (error) {
+      console.error('❌ Kamera kép feltöltési hiba:', error);
+      // A hiba már kezelve van az uploadFile-ban
+    }
   };
 
   const removeImage = () => {
@@ -122,92 +130,110 @@ const FileUpload = ({ onImageUploaded, currentImage }) => {
     onImageUploaded(null);
   };
 
-  if (showCamera) {
-    return (
-      <CameraCapture 
-        onCapture={handleCameraCapture}
-        onClose={() => setShowCamera(false)}
-      />
-    );
-  }
-
   return (
-    <div className="form-group">
-      <label className="form-label">Kép</label>
-      
-      {preview ? (
-        <div className="image-preview">
-          <img src={preview} alt="Preview" />
-          <button 
-            type="button"
-            className="remove-image-btn"
-            onClick={removeImage}
-            title="Kép eltávolítása"
-          >
-            ✕
-          </button>
+    <>
+      {/* Camera Modal */}
+      {showCamera && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            zIndex: 10000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <CameraCapture 
+            onCapture={handleCameraCapture}
+            onClose={() => setShowCamera(false)}
+          />
         </div>
-      ) : (
-        <>
-          <div 
-            className={`file-upload-area ${isDragging ? 'drag-over' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            {/* JAVÍTVA: Hidden input + label mobilbarát megoldás */}
-            <input 
-              type="file" 
-              id="file-upload-input"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
-              capture="environment"
-              onChange={handleFileChange}
-              disabled={uploading}
-              style={{ display: 'none' }}
-            />
-            
-            <label 
-              htmlFor="file-upload-input"
-              style={{
-                display: 'block',
-                width: '100%',
-                height: '100%',
-                cursor: uploading ? 'not-allowed' : 'pointer',
-                textAlign: 'center'
-              }}
-            >
-              <div className="upload-icon">
-                {uploading ? '⏳' : '📸'}
-              </div>
-              
-              <p>
-                {uploading 
-                  ? 'Feltöltés folyamatban...' 
-                  : 'Kattints ide - Fotó vagy galéria'}
-              </p>
-              <small style={{ color: 'var(--text-secondary)' }}>
-                Mobil: kamera vagy galéria | PC: fájl vagy drag & drop
-              </small>
-              <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '5px' }}>
-                JPG, PNG vagy WebP (max 10MB)
-              </small>
-            </label>
-          </div>
+      )}
 
-          {/* Kamera gomb csak HTTPS vagy localhost esetén */}
-          {(window.location.protocol === 'https:' || window.location.hostname === 'localhost') && (
+      <div className="form-group">
+        <label className="form-label">Kép</label>
+        
+        {preview ? (
+          <div className="image-preview">
+            <img src={preview} alt="Preview" />
             <button 
               type="button"
-              className="camera-btn"
-              onClick={() => setShowCamera(true)}
-              disabled={uploading}
+              className="remove-image-btn"
+              onClick={removeImage}
+              title="Kép eltávolítása"
             >
-              📷 Fotó készítése böngésző kamerával
+              ✕
             </button>
-          )}
-        </>
-      )}
-    </div>
+          </div>
+        ) : (
+          <>
+            <div 
+              className={`file-upload-area ${isDragging ? 'drag-over' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {/* JAVÍTVA: Hidden input + label mobilbarát megoldás */}
+              <input 
+                type="file" 
+                id="file-upload-input"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                capture="environment"
+                onChange={handleFileChange}
+                disabled={uploading}
+                style={{ display: 'none' }}
+              />
+              
+              <label 
+                htmlFor="file-upload-input"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: '100%',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                <div className="upload-icon">
+                  {uploading ? '⏳' : '📸'}
+                </div>
+                
+                <p>
+                  {uploading 
+                    ? 'Feltöltés folyamatban...' 
+                    : 'Kattints ide - Fotó vagy galéria'}
+                </p>
+                <small style={{ color: 'var(--text-secondary)' }}>
+                  Mobil: kamera vagy galéria | PC: fájl vagy drag & drop
+                </small>
+                <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '5px' }}>
+                  JPG, PNG vagy WebP (max 10MB)
+                </small>
+              </label>
+            </div>
+
+            {/* Kamera gomb - csak akkor jelenik meg, ha a kamera elérhető */}
+            {(navigator.mediaDevices || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) && (
+              <button 
+                type="button"
+                className="camera-btn"
+                onClick={() => setShowCamera(true)}
+                disabled={uploading}
+              >
+                📷 Fotó készítése böngésző kamerával
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

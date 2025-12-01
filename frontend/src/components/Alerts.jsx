@@ -10,6 +10,12 @@ const Alerts = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all' | 'warning' | 'info'
+  
+  // Érintett tárgyak modal
+  const [showItemsModal, setShowItemsModal] = useState(false);
+  const [modalItems, setModalItems] = useState([]);
+  const [modalTitle, setModalTitle] = useState('');
+  const [loadingItems, setLoadingItems] = useState(false);
 
   useEffect(() => {
     loadNotifications();
@@ -47,11 +53,43 @@ const Alerts = () => {
     return severity === 'warning' ? 'notification-warning' : 'notification-info';
   };
 
-  const handleNotificationClick = (notification) => {
-    // Ha van item_id, navigálj a tárgyhoz
+  const handleNotificationClick = async (notification) => {
+    // Ha van item_id (egyetlen tárgy), navigálj a preview-ra
     if (notification.item_id) {
-      navigate(`/items/${notification.item_id}`);
+      console.log('🔔 Alert kattintás: item_id =', notification.item_id);
+      navigate('/', { 
+        state: { previewItemId: notification.item_id },
+        replace: false
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    // Ha több tárgy érintett (count > 0), töltsd be a listát
+    else if (notification.count && notification.type) {
+      console.log('🔔 Alert kattintás: több tárgy, type =', notification.type);
+      setLoadingItems(true);
+      setModalTitle(notification.title);
+      setShowItemsModal(true);
+      
+      try {
+        const response = await api.get(`/notifications/${notification.type}/items`);
+        setModalItems(response.data);
+      } catch (error) {
+        console.error('❌ Érintett tárgyak betöltési hiba:', error);
+        toast.error('Nem sikerült betölteni az érintett tárgyakat');
+        setShowItemsModal(false);
+      } finally {
+        setLoadingItems(false);
+      }
+    }
+  };
+
+  const handleItemClick = (itemId) => {
+    setShowItemsModal(false);
+    navigate('/', { 
+      state: { previewItemId: itemId },
+      replace: false
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const filteredNotifications = notifications.filter(n => {
@@ -152,7 +190,7 @@ const Alerts = () => {
             <div
               key={notification.id}
               className={`notification-card ${getSeverityClass(notification.severity)} ${
-                notification.item_id ? 'clickable' : ''
+                (notification.item_id || notification.count) ? 'clickable' : ''
               }`}
               onClick={() => handleNotificationClick(notification)}
             >
@@ -168,15 +206,66 @@ const Alerts = () => {
                   </div>
                 )}
               </div>
-              {notification.item_id && (
+              {(notification.item_id || notification.count) && (
                 <button className="notification-action">
-                  Megnyitás →
+                  {notification.count ? 'Tárgyak megtekintése →' : 'Megnyitás →'}
                 </button>
               )}
             </div>
           ))
         )}
       </div>
+
+      {/* Érintett tárgyak modal */}
+      {showItemsModal && (
+        <div className="items-modal-overlay" onClick={() => setShowItemsModal(false)}>
+          <div className="items-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="items-modal-header">
+              <h2>{modalTitle}</h2>
+              <button className="close-btn" onClick={() => setShowItemsModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="items-modal-content">
+              {loadingItems ? (
+                <div className="loading">⏳ Tárgyak betöltése...</div>
+              ) : modalItems.length === 0 ? (
+                <div className="empty-message">Nincsenek érintett tárgyak</div>
+              ) : (
+                <div className="items-list">
+                  {modalItems.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="item-row"
+                      onClick={() => handleItemClick(item.id)}
+                    >
+                      {item.image ? (
+                        <img 
+                          src={`/uploads/${item.image}`} 
+                          alt={item.name}
+                          className="item-thumb"
+                        />
+                      ) : (
+                        <div className="item-thumb-placeholder">📦</div>
+                      )}
+                      <div className="item-info">
+                        <div className="item-name">{item.name}</div>
+                        <div className="item-category">{item.category}</div>
+                      </div>
+                      {item.purchase_price && (
+                        <div className="item-price">
+                          {item.purchase_price.toLocaleString()} Ft
+                        </div>
+                      )}
+                      <div className="item-arrow">→</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
