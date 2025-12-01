@@ -13,6 +13,40 @@ Az alkalmazás két különböző dizájnnal rendelkezik:
 - **Game UI** - Játékos, színes dizájn vastag keretekkel és emoji ikonokkal
 - **Retro UI** - Klasszikus, letisztult megjelenés
 
+### 🖥️ Desktop nézet
+
+| Game UI | Retro Design |
+|---------|--------------|
+| ![PC Game UI](screenshots/PC/PC_gameui.png) | ![PC Retro](screenshots/PC/PC_retro.png) |
+
+### 📱 Mobil nézet - Game UI
+
+| Főoldal | Értesítések | Statisztikák |
+|---------|-------------|--------------|
+| ![Mobile Home](screenshots/mobile_GameUI/Mobile-home.png) | ![Mobile Alerts](screenshots/mobile_GameUI/mobile-alerts.png) | ![Mobile Stats](screenshots/mobile_GameUI/mobile-stats-1.png) |
+
+| Statisztikák (2) | QR Scanner | Beállítások |
+|-----------------|------------|-------------|
+| ![Mobile Stats 2](screenshots/mobile_GameUI/mobile-stats-2.png) | ![Mobile QR](screenshots/mobile_GameUI/mobile-qr-scanner.png) | ![Mobile Settings](screenshots/mobile_GameUI/mobile-options.png) |
+
+| Előnézet |
+|----------|
+| ![Mobile Preview](screenshots/mobile_GameUI/mobile-preview.png) |
+
+### 📱 Mobil nézet - Retro Design
+
+| Főoldal | Értesítések | Statisztikák |
+|---------|-------------|--------------|
+| ![Mobile Retro Home](screenshots/mobile_Retro_Design/Mobile-retro-home.png) | ![Mobile Retro Alerts](screenshots/mobile_Retro_Design/mobile-retro-alerts.png) | ![Mobile Retro Stats](screenshots/mobile_Retro_Design/mobile-retro-stats.png) |
+
+| QR Scanner | Beállítások | Előnézet |
+|------------|-------------|----------|
+| ![Mobile Retro QR](screenshots/mobile_Retro_Design/mobile-retro-qr-scanner.png) | ![Mobile Retro Settings](screenshots/mobile_Retro_Design/mobile-retro-options.png) | ![Mobile Retro Preview](screenshots/mobile_Retro_Design/mobile-retro-preview.png) |
+
+### 📲 Tablet nézet
+
+![Tablet](screenshots/Tablet/Tablet.png)
+
 ## ✨ Funkciók
 
 ### 📱 Tárgykezelés
