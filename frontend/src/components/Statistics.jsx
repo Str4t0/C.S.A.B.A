@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, Package, DollarSign, AlertTriangle, Image as ImageIcon,
   TrendingUp, Users, MapPin, Calendar
@@ -11,6 +12,7 @@ import ItemPreviewRetro from './ItemPreview-retro';
 import '../styles/Statistics.css';
 
 const Statistics = () => {
+  const navigate = useNavigate();
   const { isGameUI } = useUI();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -323,7 +325,7 @@ const Statistics = () => {
           onClose={() => setPreviewItem(null)}
           onEdit={() => {
             setPreviewItem(null);
-            window.location.href = `/?edit=${previewItem.id}`;
+            navigate('/', { state: { editItemId: previewItem.id } });
           }}
         />
       )}
@@ -334,7 +336,7 @@ const Statistics = () => {
           onClose={() => setPreviewItem(null)}
           onEdit={() => {
             setPreviewItem(null);
-            window.location.href = `/?edit=${previewItem.id}`;
+            navigate('/', { state: { editItemId: previewItem.id } });
           }}
         />
       )}

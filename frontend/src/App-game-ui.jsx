@@ -596,6 +596,21 @@ function AppGameUI() {
               path="/"
               element={(
                 <>
+                  {/* Action Buttons - keresés felett */}
+                  <div className="game-action-buttons" style={{
+                    display: 'flex',
+                    gap: '10px',
+                    marginBottom: '15px',
+                    justifyContent: 'center'
+                  }}>
+                    <button className="game-btn game-btn-primary" onClick={handleAddItem}>
+                      ➕ Új tárgy
+                    </button>
+                    <button className="game-btn game-btn-success" onClick={() => loadData(true)}>
+                      🔄 Frissítés
+                    </button>
+                  </div>
+
                   {/* Search Section */}
                   <div className="game-search-section">
                     <input
@@ -631,16 +646,6 @@ function AppGameUI() {
 
                   {/* Items Grid */}
                   {renderItemsView()}
-
-                  {/* Footer Actions */}
-                  <div className="game-footer-actions">
-                    <button className="game-btn game-btn-primary" onClick={handleAddItem}>
-                      ➕ Új tárgy
-                    </button>
-                    <button className="game-btn game-btn-success" onClick={() => loadData(true)}>
-                      🔄 Frissítés
-                    </button>
-                  </div>
                 </>
               )}
             />

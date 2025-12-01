@@ -7,6 +7,12 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-yellow.svg)
 ![React](https://img.shields.io/badge/React-18+-61dafb.svg)
 
+## 📖 Használati útmutató
+
+👉 **[USAGE.md](USAGE.md)** - Részletes használati útmutató kezdőknek
+
+---
+
 ## 🎮 Előnézet
 
 Az alkalmazás két különböző dizájnnal rendelkezik:

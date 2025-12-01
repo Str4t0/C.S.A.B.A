@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Image, MapPin, Calendar, X, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api, { itemsAPI } from '../services/api';
@@ -8,6 +9,7 @@ import ItemPreviewRetro from './ItemPreview-retro';
 import '../styles/Alerts.css';
 
 const Alerts = () => {
+  const navigate = useNavigate();
   const { isGameUI } = useUI();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -313,7 +315,7 @@ const Alerts = () => {
           onClose={handleClosePreview}
           onEdit={() => {
             handleClosePreview();
-            window.location.href = `/?edit=${previewItem.id}`;
+            navigate('/', { state: { editItemId: previewItem.id } });
           }}
         />
       )}
@@ -324,7 +326,7 @@ const Alerts = () => {
           onClose={handleClosePreview}
           onEdit={() => {
             handleClosePreview();
-            window.location.href = `/?edit=${previewItem.id}`;
+            navigate('/', { state: { editItemId: previewItem.id } });
           }}
         />
       )}
