@@ -14,15 +14,15 @@ START-ALL.bat
 Ezután nyisd meg a böngészőben: **http://localhost:3000**
 
 ### 2. Hálózati elérés (mobil/tablet)
-Ha más eszközről szeretnéd elérni:
-1. Nézd meg a PC IP címét (pl. `192.168.1.100`)
-2. Nyisd meg mobilon: **http://192.168.1.100:3000**
+Ha más eszközről szeretnéd elérni, nyisd meg:
+
+**https://89.134.157.175:3000/**
 
 ### 3. Kamera használathoz (HTTPS)
 ```bash
 START-ALL-HTTPS.bat
 ```
-Majd: **https://192.168.1.100:3000**
+Majd: **https://89.134.157.175:3000/**
 
 ---
 

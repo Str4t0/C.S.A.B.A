@@ -14,6 +14,7 @@ import Alerts from './components/Alerts';
 import Statistics from './components/Statistics';
 import QRScanner from './components/QRScanner';
 import Settings from './components/Settings';
+import HelpModal from './components/HelpModal';
 
 function App() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ function App() {
   // JAVÍTVA: Preview modal state (mint Game UI-ban)
   const [previewItem, setPreviewItem] = useState(null);
   const [previewIndex, setPreviewIndex] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Kezdeti adatok betöltése
   useEffect(() => {
@@ -183,7 +185,28 @@ function App() {
       {/* Header */}
       <header className="header">
         <div className="header-content">
-          <h1>🏠 Otthoni Tárgyi Nyilvántartás</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button
+              onClick={() => setShowHelp(true)}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                fontSize: '20px',
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="Súgó"
+            >
+              ?
+            </button>
+            <h1>🏠 Otthoni Tárgyi Nyilvántartás</h1>
+          </div>
           <div className="header-stats">
             {/* JAVÍTVA: Klikkelhetős stat kártyák + auto scroll */}
             <div 
@@ -530,6 +553,9 @@ function App() {
         <Route path="/qr-scanner" element={<QRScanner />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
+      
+      {/* Súgó Modal */}
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }

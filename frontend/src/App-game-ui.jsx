@@ -19,6 +19,7 @@ import ItemFormGameUI from './components/ItemForm-game-ui';
 import Alerts from './components/Alerts';
 import Statistics from './components/Statistics';
 import QRScanner from './components/QRScanner';
+import HelpModal from './components/HelpModal';
 import './styles/inventory-game-ui.css';
 
 function AppGameUI() {
@@ -35,6 +36,7 @@ function AppGameUI() {
   const [formDirty, setFormDirty] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
   const [previewIndex, setPreviewIndex] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -495,14 +497,36 @@ function AppGameUI() {
     <div className="game-ui-container">
       {/* Header */}
       <div className="game-header">
-        <div>
-          <h1 className="game-title">
-            <span className="game-title-icon">📦</span>
-            C.S.A.B.A
-          </h1>
-          <p className="game-subtitle">| || Central Storage And Business Application</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <button
+            onClick={() => setShowHelp(true)}
+            className="game-btn"
+            style={{
+              width: '45px',
+              height: '45px',
+              borderRadius: '50%',
+              fontSize: '22px',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title="Súgó"
+          >
+            ?
+          </button>
+          <div>
+            <h1 className="game-title">
+              <span className="game-title-icon">📦</span>
+              C.S.A.B.A
+            </h1>
+            <p className="game-subtitle">| || Central Storage And Business Application</p>
+          </div>
         </div>
       </div>
+      
+      {/* Súgó Modal */}
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       {/* Stats Row */}
       <div className="game-stats-row">
