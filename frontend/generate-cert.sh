@@ -3,13 +3,13 @@
 
 echo "🔐 SSL tanúsítvány generálása..."
 
-# IP cím automatikus detektálása (Unix/Linux)
-LOCAL_IP=$(hostname -I | awk '{print $1}' 2>/dev/null)
+# IP cím automatikus detektálása (Unix/Linux/BusyBox)
+LOCAL_IP=$(ip route get 8.8.8.8 2>/dev/null | awk '{print $7; exit}')
 if [ -z "$LOCAL_IP" ]; then
-    LOCAL_IP=$(ip route get 8.8.8.8 2>/dev/null | awk '{print $7; exit}')
+    LOCAL_IP=$(ifconfig | grep -E 'inet addr:' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d: -f2 | head -1)
 fi
 if [ -z "$LOCAL_IP" ]; then
-    LOCAL_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1)
+    LOCAL_IP=$(ifconfig | grep -E 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | head -1)
 fi
 
 # Ha nem található, használjuk az alapértelmezettet

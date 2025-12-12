@@ -15,13 +15,13 @@ echo -e "${BLUE}  Otthoni Tárgyi Nyilvántartó - HTTPS INDÍTÁS${NC}"
 echo -e "${BLUE}================================================${NC}"
 echo ""
 
-# IP cím meghatározása (Unix/Linux)
-LOCAL_IP=$(hostname -I | awk '{print $1}' 2>/dev/null)
+# IP cím meghatározása (Unix/Linux/BusyBox)
+LOCAL_IP=$(ip route get 8.8.8.8 2>/dev/null | awk '{print $7; exit}')
 if [ -z "$LOCAL_IP" ]; then
-    LOCAL_IP=$(ip route get 8.8.8.8 2>/dev/null | awk '{print $7; exit}')
+    LOCAL_IP=$(ifconfig | grep -E 'inet addr:' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d: -f2 | head -1)
 fi
 if [ -z "$LOCAL_IP" ]; then
-    LOCAL_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1)
+    LOCAL_IP=$(ifconfig | grep -E 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | head -1)
 fi
 if [ -z "$LOCAL_IP" ]; then
     LOCAL_IP="127.0.0.1"
@@ -90,7 +90,7 @@ PYTHON_CMD=""
 if command -v python3 &> /dev/null; then
     PYTHON_CMD="python3"
 elif command -v python &> /dev/null; then
-    PYTHON_VERSION_CHECK=$(python --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
+    PYTHON_VERSION_CHECK=$(python --version 2>&1 | sed -n 's/.*Python \([0-9]\+\).*/\1/p' | head -1)
     if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
         PYTHON_CMD="python"
     fi
@@ -100,7 +100,7 @@ fi
 if [ -z "$PYTHON_CMD" ]; then
     for PYTHON_PATH in /share/CACHEDEV1_DATA/.qpkg/Python3/opt/python3/bin/python3 /usr/bin/python3 /usr/local/bin/python3 /opt/bin/python3 /usr/bin/python /usr/local/bin/python; do
         if [ -f "$PYTHON_PATH" ] && [ -x "$PYTHON_PATH" ]; then
-            PYTHON_VERSION_CHECK=$($PYTHON_PATH --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
+            PYTHON_VERSION_CHECK=$($PYTHON_PATH --version 2>&1 | sed -n 's/.*Python \([0-9]\+\).*/\1/p' | head -1)
             if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
                 PYTHON_CMD="$PYTHON_PATH"
                 break
@@ -122,7 +122,7 @@ if [ -z "$PYTHON_CMD" ]; then
         exit 1
     fi
     
-    PYTHON_VERSION_CHECK=$($PYTHON_CMD --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
+    PYTHON_VERSION_CHECK=$($PYTHON_CMD --version 2>&1 | sed -n 's/.*Python \([0-9]\+\).*/\1/p' | head -1)
     if [ -z "$PYTHON_VERSION_CHECK" ] || [ "$PYTHON_VERSION_CHECK" -lt 3 ] 2>/dev/null; then
         echo -e "${RED}❌ A megadott Python nem Python 3!${NC}"
         exit 1
