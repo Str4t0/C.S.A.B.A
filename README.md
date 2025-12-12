@@ -112,6 +112,8 @@ Az alkalmazás két különböző dizájnnal rendelkezik:
 - Node.js 18+
 - Git
 
+> **📖 Unix/Linux felhasználóknak:** Részletes útmutató: [UNIX-SETUP.md](UNIX-SETUP.md)
+
 ### 1. Repository klónozása
 ```bash
 git clone https://github.com/YOUR_USERNAME/home-inventory-system.git
@@ -140,22 +142,70 @@ npm install
 
 ### 4. Indítás
 
-#### Egyszerű indítás (HTTP)
+#### Windows
+
+##### Egyszerű indítás (HTTP)
 ```bash
-# Windows - projekt gyökérben
+# Projekt gyökérben
 START-ALL.bat
 ```
 
-#### HTTPS indítás (kamera támogatáshoz)
+##### HTTPS indítás (kamera támogatáshoz)
 ```bash
-# Windows - projekt gyökérben
+# Projekt gyökérben
 START-ALL-HTTPS.bat
+```
+
+#### Unix/Linux (SSH szerveren)
+
+##### Egyszerű indítás (HTTP)
+```bash
+# Projekt gyökérben
+chmod +x start-unix.sh
+./start-unix.sh
+```
+
+##### HTTPS indítás (kamera támogatáshoz)
+```bash
+# Projekt gyökérben
+chmod +x start-unix-https.sh
+./start-unix-https.sh
+```
+
+##### Leállítás
+```bash
+# Projekt gyökérben
+chmod +x stop-unix.sh
+./stop-unix.sh
+```
+
+**SSH szerveren futtatás:**
+```bash
+# SSH kapcsolat létrehozása
+ssh admin@192.168.50.235
+
+# Projekt klónozása vagy navigálás a projekt könyvtárba
+cd /path/to/home-inventory-system
+
+# Indítás (HTTP vagy HTTPS)
+./start-unix.sh
+# vagy
+./start-unix-https.sh
+
+# Logok megtekintése (másik terminálban)
+tail -f backend.log
+tail -f frontend.log
+
+# Leállítás
+./stop-unix.sh
 ```
 
 #### Manuális indítás
 ```bash
 # Backend (külön terminálban)
 cd backend
+source venv/bin/activate  # Linux/Mac
+# vagy: venv\Scripts\activate  # Windows
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Frontend (külön terminálban)
@@ -198,8 +248,11 @@ home-inventory-system/
 │   ├── certs/               # SSL tanúsítványok
 │   └── package.json
 │
-├── START-ALL.bat            # HTTP indító
-├── START-ALL-HTTPS.bat      # HTTPS indító
+├── START-ALL.bat            # HTTP indító (Windows)
+├── START-ALL-HTTPS.bat      # HTTPS indító (Windows)
+├── start-unix.sh            # HTTP indító (Unix/Linux)
+├── start-unix-https.sh      # HTTPS indító (Unix/Linux)
+├── stop-unix.sh             # Leállító script (Unix/Linux)
 └── README.md
 ```
 

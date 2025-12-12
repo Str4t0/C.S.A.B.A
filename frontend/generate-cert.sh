@@ -3,12 +3,18 @@
 
 echo "🔐 SSL tanúsítvány generálása..."
 
-# IP cím automatikus detektálása (Windows)
-LOCAL_IP=$(ipconfig | grep -i "IPv4" | head -1 | awk '{print $NF}' | tr -d '\r')
+# IP cím automatikus detektálása (Unix/Linux)
+LOCAL_IP=$(hostname -I | awk '{print $1}' 2>/dev/null)
+if [ -z "$LOCAL_IP" ]; then
+    LOCAL_IP=$(ip route get 8.8.8.8 2>/dev/null | awk '{print $7; exit}')
+fi
+if [ -z "$LOCAL_IP" ]; then
+    LOCAL_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1)
+fi
 
 # Ha nem található, használjuk az alapértelmezettet
 if [ -z "$LOCAL_IP" ]; then
-    LOCAL_IP="192.168.50.75"
+    LOCAL_IP="127.0.0.1"
     echo "⚠️  IP cím nem található, használom: $LOCAL_IP"
 else
     echo "Helyi IP cím: $LOCAL_IP"
