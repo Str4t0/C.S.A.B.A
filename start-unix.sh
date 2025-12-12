@@ -39,7 +39,6 @@ PYTHON_CMD=""
 if command -v python3 &> /dev/null; then
     PYTHON_CMD="python3"
 elif command -v python &> /dev/null; then
-    # Ellenőrizzük, hogy Python 3-e
     PYTHON_VERSION_CHECK=$(python --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
     if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
         PYTHON_CMD="python"
@@ -72,7 +71,6 @@ if [ -z "$PYTHON_CMD" ]; then
         exit 1
     fi
     
-    # Ellenőrizzük, hogy Python 3-e
     PYTHON_VERSION_CHECK=$($PYTHON_CMD --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
     if [ -z "$PYTHON_VERSION_CHECK" ] || [ "$PYTHON_VERSION_CHECK" -lt 3 ] 2>/dev/null; then
         echo -e "${RED}❌ A megadott Python nem Python 3!${NC}"
@@ -211,4 +209,3 @@ echo "     vagy: ./stop-unix.sh"
 echo ""
 echo -e "${YELLOW}⏳ Várj 5-10 másodpercet, amíg a szolgáltatások teljesen elindulnak...${NC}"
 echo ""
-

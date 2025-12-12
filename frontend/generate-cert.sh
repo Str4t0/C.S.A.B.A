@@ -36,4 +36,3 @@ echo "✅ Kulcs létrehozva: certs/key.pem"
 echo ""
 echo "⚠️  FIGYELEM: Self-signed tanúsítvány! A böngésző figyelmeztetést fog mutatni."
 echo "   Kattints a 'Tovább a webhelyre' gombra a böngészőben."
-

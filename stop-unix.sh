@@ -37,7 +37,6 @@ if [ ! -z "$BACKEND_PID" ]; then
     echo -e "${BLUE}Backend leállítása (PID: $BACKEND_PID)...${NC}"
     kill $BACKEND_PID 2>/dev/null
     sleep 1
-    # Ha még fut, erőszakos leállítás
     if ps -p $BACKEND_PID > /dev/null 2>&1; then
         kill -9 $BACKEND_PID 2>/dev/null
     fi
@@ -49,7 +48,6 @@ if [ ! -z "$FRONTEND_PID" ]; then
     echo -e "${BLUE}Frontend leállítása (PID: $FRONTEND_PID)...${NC}"
     kill $FRONTEND_PID 2>/dev/null
     sleep 1
-    # Ha még fut, erőszakos leállítás
     if ps -p $FRONTEND_PID > /dev/null 2>&1; then
         kill -9 $FRONTEND_PID 2>/dev/null
     fi
@@ -61,7 +59,6 @@ if [ ! -z "$NODE_PID" ]; then
     echo -e "${BLUE}Node dev server leállítása (PID: $NODE_PID)...${NC}"
     kill $NODE_PID 2>/dev/null
     sleep 1
-    # Ha még fut, erőszakos leállítás
     if ps -p $NODE_PID > /dev/null 2>&1; then
         kill -9 $NODE_PID 2>/dev/null
     fi
@@ -85,4 +82,3 @@ fi
 echo ""
 echo -e "${GREEN}✅ Minden szolgáltatás leállítva${NC}"
 echo ""
-

@@ -39,24 +39,43 @@ cd "$SCRIPT_DIR"
 if [ ! -f "frontend/certs/cert.pem" ] || [ ! -f "frontend/certs/key.pem" ]; then
     echo -e "${YELLOW}[FIGYELMEZTETÉS] HTTPS tanúsítvány nem található!${NC}"
     echo ""
-    echo "Tanúsítvány generálása..."
-    cd frontend
-    if [ -f "generate-cert.sh" ]; then
-        bash generate-cert.sh
-    else
-        echo -e "${RED}❌ generate-cert.sh nem található!${NC}"
-        echo "Használj HTTP-t a start-unix.sh fájllal, vagy"
-        echo "telepítsd az OpenSSL-t és generáld manuálisan a tanúsítványt."
-        exit 1
-    fi
-    cd ..
+    echo "A HTTPS mód használatához SSL tanúsítvány szükséges."
     echo ""
+    read -p "Szeretnéd most generálni a tanúsítványt? (i/n): " GENERATE_CERT
     
-    if [ ! -f "frontend/certs/cert.pem" ] || [ ! -f "frontend/certs/key.pem" ]; then
-        echo -e "${RED}❌ Tanúsítvány generálása sikertelen!${NC}"
-        echo "Használj HTTP-t a start-unix.sh fájllal, vagy"
-        echo "telepítsd az OpenSSL-t és próbáld újra."
-        exit 1
+    if [ "$GENERATE_CERT" = "i" ] || [ "$GENERATE_CERT" = "I" ] || [ "$GENERATE_CERT" = "igen" ] || [ "$GENERATE_CERT" = "y" ] || [ "$GENERATE_CERT" = "Y" ]; then
+        echo ""
+        echo "Tanúsítvány generálása..."
+        cd frontend
+        if [ -f "generate-cert.sh" ]; then
+            bash generate-cert.sh
+        else
+            echo -e "${RED}❌ generate-cert.sh nem található!${NC}"
+            echo "Használj HTTP-t a start-unix.sh fájllal, vagy"
+            echo "telepítsd az OpenSSL-t és generáld manuálisan a tanúsítványt."
+            exit 1
+        fi
+        cd ..
+        echo ""
+        
+        if [ ! -f "frontend/certs/cert.pem" ] || [ ! -f "frontend/certs/key.pem" ]; then
+            echo -e "${RED}❌ Tanúsítvány generálása sikertelen!${NC}"
+            echo "Használj HTTP-t a start-unix.sh fájllal, vagy"
+            echo "telepítsd az OpenSSL-t és próbáld újra."
+            exit 1
+        fi
+    else
+        echo ""
+        echo -e "${YELLOW}Tanúsítvány generálása kihagyva.${NC}"
+        echo ""
+        echo "A tanúsítványt később is generálhatod:"
+        echo "  cd frontend"
+        echo "  ./generate-cert.sh"
+        echo ""
+        echo "Vagy használd a HTTP módot:"
+        echo "  ./start-unix.sh"
+        echo ""
+        exit 0
     fi
 fi
 
@@ -71,7 +90,6 @@ PYTHON_CMD=""
 if command -v python3 &> /dev/null; then
     PYTHON_CMD="python3"
 elif command -v python &> /dev/null; then
-    # Ellenőrizzük, hogy Python 3-e
     PYTHON_VERSION_CHECK=$(python --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
     if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
         PYTHON_CMD="python"
@@ -104,7 +122,6 @@ if [ -z "$PYTHON_CMD" ]; then
         exit 1
     fi
     
-    # Ellenőrizzük, hogy Python 3-e
     PYTHON_VERSION_CHECK=$($PYTHON_CMD --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
     if [ -z "$PYTHON_VERSION_CHECK" ] || [ "$PYTHON_VERSION_CHECK" -lt 3 ] 2>/dev/null; then
         echo -e "${RED}❌ A megadott Python nem Python 3!${NC}"
@@ -231,4 +248,3 @@ echo "     vagy: ./stop-unix.sh"
 echo ""
 echo -e "${YELLOW}⏳ Várj 5-10 másodpercet, amíg a szolgáltatások teljesen elindulnak...${NC}"
 echo ""
-
