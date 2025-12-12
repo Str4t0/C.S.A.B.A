@@ -98,7 +98,7 @@ fi
 
 # Ha még mindig nincs, keressük a gyakori helyeken
 if [ -z "$PYTHON_CMD" ]; then
-    for PYTHON_PATH in /usr/bin/python3 /usr/local/bin/python3 /opt/bin/python3 /usr/bin/python /usr/local/bin/python; do
+    for PYTHON_PATH in /share/CACHEDEV1_DATA/.qpkg/Python3/opt/python3/bin/python3 /usr/bin/python3 /usr/local/bin/python3 /opt/bin/python3 /usr/bin/python /usr/local/bin/python; do
         if [ -f "$PYTHON_PATH" ] && [ -x "$PYTHON_PATH" ]; then
             PYTHON_VERSION_CHECK=$($PYTHON_PATH --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
             if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
