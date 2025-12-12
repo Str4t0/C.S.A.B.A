@@ -34,16 +34,54 @@ echo ""
 # Előfeltételek ellenőrzése
 echo -e "${BLUE}[INFO] Előfeltételek ellenőrzése...${NC}"
 
-# Python ellenőrzése
-if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}❌ Python 3 nincs telepítve!${NC}"
-    echo "Telepítsd: sudo apt-get install python3 python3-pip python3-venv (Debian/Ubuntu)"
-    echo "vagy: sudo yum install python3 python3-pip (RHEL/CentOS)"
-    exit 1
+# Python keresése (több helyen is)
+PYTHON_CMD=""
+if command -v python3 &> /dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &> /dev/null; then
+    # Ellenőrizzük, hogy Python 3-e
+    PYTHON_VERSION_CHECK=$(python --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
+    if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
+        PYTHON_CMD="python"
+    fi
 fi
 
-PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
-echo -e "${GREEN}✅ Python: $PYTHON_VERSION${NC}"
+# Ha még mindig nincs, keressük a gyakori helyeken
+if [ -z "$PYTHON_CMD" ]; then
+    for PYTHON_PATH in /usr/bin/python3 /usr/local/bin/python3 /opt/bin/python3 /usr/bin/python /usr/local/bin/python; do
+        if [ -f "$PYTHON_PATH" ] && [ -x "$PYTHON_PATH" ]; then
+            PYTHON_VERSION_CHECK=$($PYTHON_PATH --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
+            if [ "$PYTHON_VERSION_CHECK" -ge 3 ] 2>/dev/null; then
+                PYTHON_CMD="$PYTHON_PATH"
+                break
+            fi
+        fi
+    done
+fi
+
+# Ha még mindig nincs, kérjük be a felhasználótól
+if [ -z "$PYTHON_CMD" ]; then
+    echo -e "${YELLOW}⚠️  Python 3 nem található a PATH-ban!${NC}"
+    echo ""
+    echo "Kérlek add meg a Python 3 teljes elérési útját:"
+    echo "Például: /usr/bin/python3 vagy /opt/bin/python3"
+    read -p "Python elérési út: " PYTHON_CMD
+    
+    if [ -z "$PYTHON_CMD" ] || [ ! -f "$PYTHON_CMD" ] || [ ! -x "$PYTHON_CMD" ]; then
+        echo -e "${RED}❌ Érvénytelen Python elérési út!${NC}"
+        exit 1
+    fi
+    
+    # Ellenőrizzük, hogy Python 3-e
+    PYTHON_VERSION_CHECK=$($PYTHON_CMD --version 2>&1 | grep -oP 'Python \K[0-9]+' | head -1)
+    if [ -z "$PYTHON_VERSION_CHECK" ] || [ "$PYTHON_VERSION_CHECK" -lt 3 ] 2>/dev/null; then
+        echo -e "${RED}❌ A megadott Python nem Python 3!${NC}"
+        exit 1
+    fi
+fi
+
+PYTHON_VERSION=$($PYTHON_CMD --version 2>&1 | awk '{print $2}')
+echo -e "${GREEN}✅ Python: $PYTHON_VERSION (${PYTHON_CMD})${NC}"
 
 # Node.js ellenőrzése
 if ! command -v node &> /dev/null; then
@@ -78,7 +116,7 @@ cd backend
 # Virtuális környezet létrehozása (ha nincs)
 if [ ! -d "venv" ]; then
     echo -e "${BLUE}Virtuális környezet létrehozása...${NC}"
-    python3 -m venv venv
+    $PYTHON_CMD -m venv venv
 fi
 
 # Virtuális környezet aktiválása
@@ -127,7 +165,7 @@ echo ""
 echo -e "${YELLOW}[1/2] Backend indítása (port 8000)...${NC}"
 cd backend
 source venv/bin/activate
-nohup python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > ../backend.log 2>&1 &
+nohup $PYTHON_CMD -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > ../backend.log 2>&1 &
 BACKEND_PID=$!
 cd ..
 echo -e "${GREEN}✅ Backend elindult (PID: $BACKEND_PID)${NC}"
